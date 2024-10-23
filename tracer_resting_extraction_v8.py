@@ -17,6 +17,14 @@ import numpy as np
 # =============================================================================
 run_names = ['q05_1r1']
 
+# =============================================================================
+# FOLDERS SETUP
+# =============================================================================
+# w_dir = os.path.join(os.getcwd(), 'tracers_displacement')
+w_dir = os.path.join(os.getcwd())
+input_dir = os.path.join(w_dir, 'input_data')
+output_dir = os.path.join(w_dir, 'output_data')
+
 # NEIGHBOURHOOD ANALYSIS PARAMETERS
 delta_x = 30
 delta_y = 30
@@ -159,7 +167,6 @@ def trim_nan_rows(matrix):
 # =============================================================================
 # SET FOLDERS
 # =============================================================================
-w_dir = os.getcwd()
 
 # Dictionary to track the last row index where 1 was inserted for each point
 last_inserted_index = {}
@@ -168,7 +175,7 @@ for run_name in run_names:
     # =============================================================================
     # IMPORT FILES
     # =============================================================================
-    tracers_reduced_path = os.path.join(w_dir, 'output_images', run_name, 'tracers_reduced_'+run_name+'.npy')
+    tracers_reduced_path = os.path.join(output_dir, 'output_images', run_name, 'tracers_reduced_'+run_name+'.npy')
     tracers_reduced_raw = np.load(tracers_reduced_path)
     
     # tracers_reduced_raw = tracers_reduced_raw[24:,:,:] # Reduce the time intervall (test purpose)
@@ -224,7 +231,7 @@ for run_name in run_names:
   
                     # Find the row index in resting_report
                     row_index = find_row_with_entries(resting_report, point1[0], point1[1])
-                    print('row_index: ', row_index)
+                    # print('row_index: ', row_index)
                     
                     # Update the position
                     resting_report[row_index,:2] = point2
@@ -246,12 +253,12 @@ for run_name in run_names:
                         index = find_first_nan_row(resting_report)
                         resting_report[index,:] = insert_one_in_first_nan(resting_report[row_index,:])
                     
-                    print('row_index after dict: ', row_index)
+                    # print('row_index after dict: ', row_index)
                     
                     # Insert 1 at the appropriate index in the resting report
                     # resting_report[row_index,:] = insert_one_in_first_nan(resting_report[row_index,:])
                     
-                    print(resting_report[row_index,:])
+                    # print(resting_report[row_index,:])
                     break
     
         # Append out-of-range points from dataset2 to resting_report

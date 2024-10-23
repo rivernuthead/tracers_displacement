@@ -27,10 +27,10 @@ Run mode:
 
 # SET RUN NAME
 # runs = ['q05_1r7']
-
-runs = ['q05_1r1', 'q05_1r2', 'q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
-runs = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
-runs = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
+runs = ['q05_1r1']
+# runs = ['q05_1r1', 'q05_1r2', 'q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+# runs = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
+# runs = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
 # runs = ['q05_1r5']
 
@@ -38,7 +38,10 @@ runs = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1
 # Script parameters:
 run_mode = 1
 # Set working directory
-w_dir = os.getcwd() # Set Python script location as w_dir
+# w_dir = os.path.join(os.getcwd(), 'tracers_displacement')
+w_dir = os.path.join(os.getcwd())
+input_dir = os.path.join(w_dir, 'input_data')
+output_dir = os.path.join(w_dir, 'output_data')
 
 numbers = re.compile(r'(\d+)')
 
@@ -58,37 +61,43 @@ dt = 4  #time between photos
 thr = 36 #area threshold of a single tracer
 ntracmax = 1000
 new_ntracmax = 2000
-area_threshold = 4
-areaperimeter_threshold = 2
+area_threshold = 5
+areaperimeter_threshold = 0.5
 mask_buffer = 6
 tdiff = 4
 
 
-###############################################################################
-# LOOP OVER RUNS
-###############################################################################
+
+# =============================================================================
+# # LOOP OVER RUNS
+# =============================================================================
 for run in runs:
     print(run, ' is running...')
     
     time = 0
     i = 0
-    path_in = os.path.join(w_dir, 'cropped_images', run)
-    path_in_DEM = os.path.join(w_dir,'surveys',run[0:5])
-    path_in_DoD = os.path.join(w_dir,'DoDs','DoD_'+run[0:5])
+    path_in = os.path.join(input_dir, 'cropped_images', run)
+    path_in_DEM = os.path.join(input_dir,'surveys',run[0:5])
+    path_in_DoD = os.path.join(input_dir,'DoDs','DoD_'+run[0:5])
+    
+    
     
     # Create outputs script directory
-    path_out = os.path.join(w_dir, 'output_images', run)
+    path_out = os.path.join(w_dir, 'output_data', 'output_images', run)
     if os.path.exists(path_out):
         shutil.rmtree(path_out, ignore_errors=False, onerror=None)
         os.mkdir(path_out) 
     else: 
         os.mkdir(path_out)  
         
-    run_param = np.loadtxt(os.path.join(w_dir, 'run_param_'+run[0:3]+'.txt'), skiprows=1, delimiter=',')
-
+    run_param = np.loadtxt(os.path.join(input_dir, 'run_param_'+run[0:3]+'.txt'), skiprows=1, delimiter=',')
+    
+    # =============================================================================
+    # POSITION PARAMETERS
+    # =============================================================================
 
     # List input directory files and filter for files that end with .jpg
-    files_tot = sorted([f for f in os.listdir(path_in) if f.endswith('.jpg')])
+    files_tot = sorted([f for f in os.listdir(path_in) if f.endswith('.jpg') and not f.startswith('.')])
     files = files_tot
     
     all_tracers = np.zeros((len(files),ntracmax,5))
@@ -111,16 +120,19 @@ for run in runs:
     # Survey pixel dimension
     px_x = 50 # [mm]
     px_y = 5 # [mm]
+    # =============================================================================
+
     
     nDEM = int(run_param[int(run[6:])-1,2])
     nDoD1 = int(run_param[int(run[6:])-1,3])
     nDoD2 = int(run_param[int(run[6:])-1,4])
         
     DEM = np.loadtxt(os.path.join(path_in_DEM, 'matrix_bed_norm_'+run[0:3]+'_1s'+ str(nDEM) +'.txt'),skiprows=8)
+    DEM = np.where(DEM==-999, np.nan, DEM)
     DoD = np.loadtxt(os.path.join(path_in_DoD, 'DoD_'+ str(nDoD1) + '-'+ str(nDoD2) + '_filt_fill.txt'))
 
 
-    array_mask = np.loadtxt(os.path.join(w_dir, 'array_mask.txt'))
+    array_mask = np.loadtxt(os.path.join(input_dir, 'array_mask.txt'))
     array_mask = np.where(array_mask != -999,1,np.nan)
     if run == 'q10_1r8' or run == 'q10_1r9':
         array_mask = np.loadtxt(os.path.join(w_dir, 'array_mask_reduced.txt'))
@@ -130,14 +142,13 @@ for run in runs:
     DEM = DEM*array_mask
     
     for file in sorted(files,key = numericalSort):
-        # print(file)
-        
+        print('Time: ', time, 's')
         path = os.path.join(path_in, file) # Build path
         
         img = Image.open(path) # Open image
         img_array = np.asarray(img)    # Convert image in numpy array
           
-        # Extract RGB bands and convert as int64:
+        # EXTRACT RGB BANDS AND CONVERT AS INT64:
         band_red = img_array[:,:,0]    
         band_red = band_red.astype(np.int64)
         band_green = img_array[:,:,1]
@@ -146,7 +157,7 @@ for run in runs:
         band_blue = band_blue.astype(np.int64)
         
         # EXTRACT THE FLUORESCENT TRACERS - modified 2024/9/12
-        img_extract = ((band_green-band_red)>-8)*((band_red+band_green+band_blue)>350)#*((band_red+band_green+band_blue)<660)
+        img_extract = ((band_green-band_red)>-1)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700)
         img_gmr_filt = np.where(img_extract==1, 1, np.nan)
         
         # FILL SMALL HOLES
@@ -228,12 +239,21 @@ for run in runs:
         # Open the shp file with geopandas
         tracers = gpd.read_file(os.path.join(path_out, str(time)+ "s_tracers.shp"))
         
+        # Make a copy of tracers
+        tracers_copy = tracers.copy()
+        
+        # Add new columns to the copy: Area, Perimeter, and Area/Perimeter ratio
+        tracers_copy['Area'] = tracers_copy.area
+        tracers_copy['Perimeter'] = tracers_copy.length  # In GeoPandas, 'length' gives the perimeter of polygons
+        tracers_copy['Area_Perimeter_Ratio'] = tracers_copy['Area'] / tracers_copy['Perimeter']
+
+        
         # =============================================================================
         # CALCULATE THE AREA OF POLYGONS
         # drop the polygons where there aren't tracers
         tracers.drop(tracers.index[tracers.area == max(tracers.area)], inplace = True) # 
         tracers.drop(tracers.index[tracers.area < area_threshold], inplace = True) # Area thresholding
-        tracers.drop(tracers.index[tracers.area/tracers.length > areaperimeter_threshold], inplace = True) # Area/perimeter thresholding
+        tracers.drop(tracers.index[tracers.area/tracers.length < areaperimeter_threshold], inplace = True) # Area/perimeter thresholding
         mask = gpd.read_file(os.path.join(path_out, "0s_tracers.shp")) # Trim tracers in the initial position
         # drop the polygons where there aren't tracers
         mask.drop(mask.index[mask.area == max(mask.area)], inplace = True)
