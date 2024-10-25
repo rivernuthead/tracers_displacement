@@ -26,8 +26,8 @@ input_dir = os.path.join(w_dir, 'input_data')
 output_dir = os.path.join(w_dir, 'output_data')
 
 # NEIGHBOURHOOD ANALYSIS PARAMETERS
-delta_x = 30
-delta_y = 30
+delta_x = 10
+delta_y = 10
 
 # =============================================================================
 # FUNCTIONS
@@ -180,17 +180,38 @@ for run_name in run_names:
     
     # tracers_reduced_raw = tracers_reduced_raw[24:,:,:] # Reduce the time intervall (test purpose)
     
+    # REMOVE TRACERS THAT COME FROM UPSTREAM AND HAVE NAGATIVE X VALUE
+    # Iterate through each time step t
+    for t in range(tracers_reduced_raw.shape[0]):
+        # Find indices where the first element of the slice is negative
+        negative_indices = np.where(tracers_reduced_raw[t, :, 0] < 0)[0]
+        
+        # Set the entire slice tracers_reduced[t,i,:] to np.nan for each index i where the first element is negative
+        tracers_reduced_raw[t, negative_indices, :] = np.nan
+        
+    
     # REMOVE EMPTY MATRICES ---------------------------------------------------
     # Identify which matrices along the t-axis are full of np.nan
     ''' This matrices are present in the early instants of the run where no
     moved tracers are detected and where tracers move, rest and then went out
-    of the UV frame. This produces matrices that are full og np.nan even later
+    of the UV frame. This produces matrices that are full of np.nan even later
     than matrices where tracers are present'''
     
     full_nan_mask = np.all(np.isnan(tracers_reduced_raw), axis=(1, 2))
     
     # Trim those matrices
     tracers_reduced = tracers_reduced_raw[~full_nan_mask]
+    
+    # Iterate through each time step t
+    for t in range(tracers_reduced_raw.shape[0]):
+        # Find indices where the first element of the slice is negative
+        negative_indices = np.where(tracers_reduced_raw[t, :, 0] < 0)[0]
+        
+        # Set the entire slice tracers_reduced[t,i,:] to np.nan for each index i where the first element is negative
+        tracers_reduced_raw[t, negative_indices, :] = np.nan
+
+    
+    # Now, trimmed_tracers contains the trimmed matrices
     
     # =========================================================================
     # INITIALIZE THE ARRAYS
