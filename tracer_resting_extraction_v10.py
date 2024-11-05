@@ -9,14 +9,17 @@ Created on Mon Jul 22 09:08:37 2024
 # =============================================================================
 # IMPORT LIBRARIES
 # =============================================================================
+import time
+start_time = time.time()
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 
 # =============================================================================
 # SCRIPT PARAMETERS
 # =============================================================================
-run_names = ['q05_1r1']
+run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+
+# run_names = ['q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r10', 'q05_1r11', 'q05_1r12']
 
 # =============================================================================
 # FOLDERS SETUP
@@ -58,6 +61,8 @@ def set_first_nan_to_one(matrix):
 last_inserted_index = {}
 
 for run_name in run_names:
+    start_time = time.time()
+    print(run_name, '...is running.')
     # =============================================================================
     # IMPORT FILES
     # =============================================================================
@@ -110,7 +115,7 @@ for run_name in run_names:
     tracers_matrix[:,4:6] = tracers_matrix[:,:2]
     tracers_matrix = set_first_nan_to_one(tracers_matrix)
     
-    dx, dy = 5, 5
+    dx, dy = 3, 3
     first_iteration = True
 
     for t in range(1, tracers_reduced.shape[0]):
@@ -206,8 +211,14 @@ for run_name in run_names:
 
         first_iteration = True
 
-if not os.path.exists(os.path.join(output_dir, 'tracer_matrix')):
-        os.makedirs(os.path.join(output_dir, 'tracer_matrix'))
-        
-np.save(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix.npy'), tracers_matrix)
+    if not os.path.exists(os.path.join(output_dir, 'tracer_matrix')):
+            os.makedirs(os.path.join(output_dir, 'tracer_matrix'))
+            
+    np.save(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix_buffer3.npy'), tracers_matrix)
 
+
+
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time: {execution_time:.4f} seconds")

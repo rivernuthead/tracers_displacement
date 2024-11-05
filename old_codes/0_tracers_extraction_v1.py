@@ -6,6 +6,8 @@ Created on Thu Sep 29 16:58:53 2022
 """
 
 # import necessary packages
+import time
+start_time = time.time()
 import os
 from PIL import Image
 import numpy as np
@@ -27,12 +29,12 @@ Run mode:
 
 # SET RUN NAME
 # runs = ['q05_1r7']
-runs = ['q05_1r1']
+# runs = ['q05_1r10', 'q05_1r11', 'q05_1r12']
 # runs = ['q05_1r1', 'q05_1r2', 'q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
 # runs = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
 # runs = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
-# runs = ['q05_1r5']
+runs = ['q05_1r1']
 
 
 # Script parameters:
@@ -74,7 +76,7 @@ tdiff = 4
 for run in runs:
     print(run, ' is running...')
     
-    time = 0
+    t = 0
     i = 0
     path_in = os.path.join(input_dir, 'cropped_images', run)
     path_in_DEM = os.path.join(input_dir,'surveys',run[0:5])
@@ -142,7 +144,7 @@ for run in runs:
     DEM = DEM*array_mask
     
     for file in sorted(files,key = numericalSort):
-        print('Time: ', time, 's')
+        print('Time: ', t, 's')
         path = os.path.join(path_in, file) # Build path
         
         img = Image.open(path) # Open image
@@ -177,15 +179,15 @@ for run in runs:
         # RESCALE IMAGE WITH VALUES FROM 0 TO 255
         img_gmr_filt = np.where(np.logical_not(np.isnan(img_gmr_filt)),255,0)
         img_gmr_filt = img_gmr_filt.astype(np.uint8)
-        imageio.imwrite(os.path.join(path_out, str(time) + 's_gmr.png'), img_gmr_filt)
+        imageio.imwrite(os.path.join(path_out, str(t) + 's_gmr.png'), img_gmr_filt)
 
          
         # Make the difference between previous and current image
         # Get the difference between this two and then get appeared and disappeared fluorescent area
-        if time >= tdiff and file != sorted(files,key = numericalSort)[-1]:
+        if t >= tdiff and file != sorted(files,key = numericalSort)[-1]:
             
             # COLLECT CONSECUTIVE IMAGES
-            img_old = Image.open(os.path.join(path_out, str(time-tdiff) + 's_gmr.png')) # Open image
+            img_old = Image.open(os.path.join(path_out, str(t-tdiff) + 's_gmr.png')) # Open image
             img_old_array = np.asarray(img_old)    # Convert image in numpy array
             
             # COMPUTE THE DIFFERENCE
@@ -196,43 +198,43 @@ for run in runs:
             # print('max(diff): ', np.max(diff), '   min(diff): ', np.min(diff))
             
             
-            # img_diff_print = imageio.imwrite(os.path.join(path_out,str(time) + 's_diff.png'), diff)
+            # img_diff_print = imageio.imwrite(os.path.join(path_out,str(t) + 's_diff.png'), diff)
             tracers_appeared = np.where(diff==1,255,0)
             tracers_appeared = tracers_appeared.astype(np.uint8)
-            img_ta_print = imageio.imwrite(os.path.join(path_out,str(time) + 's_ta.png'), tracers_appeared)
+            img_ta_print = imageio.imwrite(os.path.join(path_out,str(t) + 's_ta.png'), tracers_appeared)
             tracers_disappeared = np.where(diff==-1,255,0)
             tracers_disappeared = tracers_disappeared.astype(np.uint8)
-            img_td_print = imageio.imwrite(os.path.join(path_out,str(time) + 's_td.png'), tracers_disappeared)
+            img_td_print = imageio.imwrite(os.path.join(path_out,str(t) + 's_td.png'), tracers_disappeared)
         
           
         # FROM RASTER TO VECTOR
         # get raster data source N.B. you need to have the file on your pc 
-        open_image = gdal.Open(os.path.join(path_out, str(time)+ "s_gmr.png"))
+        open_image = gdal.Open(os.path.join(path_out, str(t)+ "s_gmr.png"))
         input_band = open_image.GetRasterBand(1)
-        if time >= tdiff and file != sorted(files,key = numericalSort)[-1]:
-            open_image_ta = gdal.Open(os.path.join(path_out, str(time)+ "s_ta.png"))
+        if t >= tdiff and file != sorted(files,key = numericalSort)[-1]:
+            open_image_ta = gdal.Open(os.path.join(path_out, str(t)+ "s_ta.png"))
             input_band_ta = open_image_ta.GetRasterBand(1)
-            open_image_td = gdal.Open(os.path.join(path_out, str(time)+ "s_td.png"))
+            open_image_td = gdal.Open(os.path.join(path_out, str(t)+ "s_td.png"))
             input_band_td = open_image_td.GetRasterBand(1)
             
         # create output data source
         shp_driver = ogr.GetDriverByName("ESRI Shapefile")
             
         # create output file name
-        output_shapefile = shp_driver.CreateDataSource(os.path.join(path_out, str(time) + "s_tracers.shp" ))
+        output_shapefile = shp_driver.CreateDataSource(os.path.join(path_out, str(t) + "s_tracers.shp" ))
         new_shapefile = output_shapefile.CreateLayer(path_out, srs = None )
         
-        if time >= tdiff and file != sorted(files,key = numericalSort)[-1]:
-            output_shapefile_ta = shp_driver.CreateDataSource(os.path.join(path_out, str(time)+ "s_tracers_ta.shp" ))
+        if t >= tdiff and file != sorted(files,key = numericalSort)[-1]:
+            output_shapefile_ta = shp_driver.CreateDataSource(os.path.join(path_out, str(t)+ "s_tracers_ta.shp" ))
             new_shapefile_ta = output_shapefile_ta.CreateLayer(path_out, srs = None )    
-            output_shapefile_td = shp_driver.CreateDataSource(os.path.join(path_out, str(time)+ "s_tracers_td.shp" ))
+            output_shapefile_td = shp_driver.CreateDataSource(os.path.join(path_out, str(t)+ "s_tracers_td.shp" ))
             new_shapefile_td = output_shapefile_td.CreateLayer(path_out, srs = None )    
         
         # transform the raster photo in a shp file
         gdal.Polygonize(input_band, None, new_shapefile, -1, [], callback=None)
         new_shapefile.SyncToDisk()
         
-        if time >= tdiff and file != sorted(files,key = numericalSort)[-1]:
+        if t >= tdiff and file != sorted(files,key = numericalSort)[-1]:
             gdal.Polygonize(input_band_ta, None, new_shapefile_ta, -1, [], callback=None)
             new_shapefile_ta.SyncToDisk()
             gdal.Polygonize(input_band_td, None, new_shapefile_td, -1, [], callback=None)
@@ -243,7 +245,7 @@ for run in runs:
         # GEOPANDAS        
         # =============================================================================
         # Open the shp file with geopandas
-        tracers = gpd.read_file(os.path.join(path_out, str(time)+ "s_tracers.shp"))
+        tracers = gpd.read_file(os.path.join(path_out, str(t)+ "s_tracers.shp"))
         
         # Make a copy of tracers
         tracers_copy = tracers.copy()
@@ -267,7 +269,7 @@ for run in runs:
         if file != sorted(files,key = numericalSort)[-1] and len(tracers) != 0:
             tracers = tracers.overlay(mask, how = 'difference')
         tracers['Area'] = tracers.area
-        maskdis =  gpd.read_file(os.path.join(path_out, str(time)+ "s_tracers.shp"))
+        maskdis =  gpd.read_file(os.path.join(path_out, str(t)+ "s_tracers.shp"))
         maskdis.drop(maskdis.index[maskdis.area == max(maskdis.area)], inplace = True)
         maskdis['geometry'] = maskdis.geometry.buffer(mask_buffer)
         
@@ -287,24 +289,31 @@ for run in runs:
         # =============================================================================
         # EXPORTING THE NEW SHP FILE OF THE CEONTROIDS
         os.chdir(path_out)
-        tracers.to_file(str(time) + "s_centroids.shp")
+        tracers.to_file(str(t) + "s_centroids.shp")
         # create a dataframe of n tracc, x, y
         if file == sorted(files,key = numericalSort)[-1]:
-            frame_position = run_param[int(run[6:])-1,5]
-            frame_position += 0.44
-            scale_to_mm = 0.0016*frame_position + 0.4827
-            x_center = frame_position*1000 + 1100
-            x_0 = x_center - 4288/2*scale_to_mm
+            frame_position = run_param[int(run[6:])-1,5] # Frame position with respect to the laser CRS
+            frame_position += 0.44 # Frame position with respect to the CRS of the DEM (The beginning of the DEM is at -0.44 meters with respect to the laser survey CRS)
+            scale_to_mm = 0.0016*frame_position + 0.4827 # Factor scale to convert px in mm (it change considering the frame position - change the distance between the mean riverbed and the camera position)
+            x_center = frame_position*1000 + 1100 # Position of the center of the frame [mm]
+            x_0 = x_center - 4288/2*scale_to_mm # Position of the upstream edge of the frame [mm]
             #y_center = 590 + 684*scale_to_mm
+            # TODO check this: the image is 4288x1440 but along the y-axis it is wider than the channel domain. Is 622.5 the average frame width?
+            # TODO check this: the inner channel is not parallel with respect to the laser CRS. Does the y_center coordinate take this into account?? Maybe this is fine as it is since the photos are always centered, so the lateral movement is null.
             y_center = 51 + 622.5*scale_to_mm #51 è la distanza in mm dallo scan laser alla sponda interna
             y_0 = y_center - (2190-750)/2*scale_to_mm
+            
             L = 4288*scale_to_mm # photo length in meters [m]
+            
+            
         tracers['x']    = tracers['Centroid'].x
         tracers['x']    = tracers['x'].mul(scale_to_mm)
         tracers['x']    = tracers['x'].add(x_0)
+        
         tracers['y']    = tracers['Centroid'].y
         tracers['y']    = tracers['y'].mul(scale_to_mm)
         tracers['y']    = tracers['y'].add(y_0)
+        
         tracers['z']    = DEM[(tracers['y'].div(px_y)).astype(int),tracers['x'].div(px_x).astype(int)]
         tracers['zDoD'] = DoD[tracers['y'].div(px_y).astype(int),(tracers['x'].div(px_x)).astype(int)]
         tracers         = tracers.drop(columns=['FID'])
@@ -323,16 +332,16 @@ for run in runs:
         all_tracers[i,:,:] = nptracers  
         
         
-        if time >= tdiff and file != sorted(files, key=numericalSort)[-1]:
+        if t >= tdiff and file != sorted(files, key=numericalSort)[-1]:
     
             # =============================================================================
             # APPEARED TRACERS      
             # =============================================================================
-            maskapp = gpd.read_file(os.path.join(path_out, str(time-tdiff)+ "s_tracers.shp"))
+            maskapp = gpd.read_file(os.path.join(path_out, str(t-tdiff)+ "s_tracers.shp"))
             maskapp.drop(maskapp.index[maskapp.area == max(maskapp.area)], inplace=True)
             maskapp['geometry'] = maskapp.geometry.buffer(mask_buffer)
         
-            tracers_appeared = gpd.read_file(os.path.join(path_out, str(time)+ "s_tracers_ta.shp"))
+            tracers_appeared = gpd.read_file(os.path.join(path_out, str(t)+ "s_tracers_ta.shp"))
             tracers_appeared['Area'] = tracers_appeared.area
             tracers_appeared.drop(tracers_appeared.index[tracers_appeared.area == max(tracers_appeared.area)], inplace=True)
             tracers_appeared.drop(tracers_appeared.index[tracers_appeared.area < area_threshold], inplace=True)  # Area thresholding
@@ -353,7 +362,7 @@ for run in runs:
                 
                 # =============================================================================
                 # EXPORTING THE NEW SHP FILE OF THE CENTROIDS
-                tracers_appeared.to_file(str(time) + "s_centroids_ta.shp")
+                tracers_appeared.to_file(str(t) + "s_centroids_ta.shp")
         
                 # Create a dataframe of n tracc, x, y
                 tracers_appeared['x'] = tracers_appeared['Centroid'].x * scale_to_mm + x_0
@@ -371,13 +380,13 @@ for run in runs:
                 all_tracers_appeared[i, :, :] = nptracers_ta
         
             else:
-                print(f"No tracers appeared at time {time} or maskapp is empty.")
+                print(f"No tracers appeared at time {t} or maskapp is empty.")
                 all_tracers_appeared[i, :, :] = np.full((ntracmax, 5), np.nan)
         
             # =============================================================================
             # DISAPPEARED TRACERS        
             # =============================================================================
-            tracers_disappeared = gpd.read_file(os.path.join(path_out, str(time)+ "s_tracers_td.shp"))
+            tracers_disappeared = gpd.read_file(os.path.join(path_out, str(t)+ "s_tracers_td.shp"))
             tracers_disappeared['Area'] = tracers_disappeared.area
             tracers_disappeared.drop(tracers_disappeared.index[tracers_disappeared.area == max(tracers_disappeared.area)], inplace=True)
             tracers_disappeared.drop(tracers_disappeared.index[tracers_disappeared.area < area_threshold], inplace=True)
@@ -394,7 +403,7 @@ for run in runs:
                 tracers_disappeared = tracers_disappeared.drop(columns=['geometry'])
         
                 # Exporting the new shapefile of the centroids
-                tracers_disappeared.to_file(str(time) + "s_centroids_td.shp")
+                tracers_disappeared.to_file(str(t) + "s_centroids_td.shp")
         
                 # Create a dataframe of n tracc, x, y
                 tracers_disappeared['x'] = tracers_disappeared['Centroid'].x * scale_to_mm + x_0
@@ -412,13 +421,13 @@ for run in runs:
                 all_tracers_disappeared[i, :, :] = nptracers_td
         
             else:
-                print(f"No tracers disappeared at time {time} or maskdis is empty.")
+                print(f"No tracers disappeared at time {t} or maskdis is empty.")
                 all_tracers_disappeared[i, :, :] = np.full((ntracmax, 5), np.nan)
 
             
 
         i +=1
-        time += dt
+        t += dt
         
     np.save(os.path.join(path_out,'alltracers_'+ run +'.npy'),all_tracers)
     np.save(os.path.join(path_out, 'tracers_appeared_'+ run +'.npy'),all_tracers_appeared)
@@ -437,10 +446,10 @@ for run in runs:
     
     frame_position = run_param[int(run[6:])-1,1]
     
-    frame_position += 0.44
-    scale_to_mm = 0.0016*frame_position + 0.4827
-    x_center = frame_position*1000 + 1100
-    x_0 = x_center - 4288/2*scale_to_mm
+    frame_position += 0.44 # Frame position in DEM CRS
+    scale_to_mm = 0.0016*frame_position + 0.4827 # Factor scaling from px to mm
+    x_center = frame_position*1000 + 1100 # Frame centroids x-coordinates in DEM CRS
+    x_0 = x_center - 4288/2*scale_to_mm # Upstream edges x-coordinate in DEM CRS
 
     feeding = gpd.read_file(os.path.join(path_out, "0s_tracers.shp"))
     feeding.drop(feeding.index[feeding.area == max(feeding.area)], inplace = True)
@@ -452,7 +461,9 @@ for run in runs:
     feeding['x'] = feeding['x'].mul(scale_to_mm)
     feeding['x']= feeding['x'].add(x_0)
     
-    x_start = min(feeding.x)
+    x_start = min(feeding.x) # Feeding x-coordinate referred to the DEM CRS (for column of the DEM)
+    
+    print(run, ' x start: ', x_start)
             
     new_tracers = np.zeros((len(all_tracers),new_ntracmax,4))
     new_tracers_appeared = np.zeros((len(all_tracers_appeared),new_ntracmax,4))
@@ -551,3 +562,10 @@ for run in runs:
     print('########################') 
 
     print('\n\n\n')
+    
+    
+    
+
+end_time = time.time()
+execution_time = end_time - start_time
+print(f"Execution time: {execution_time:.4f} seconds")
