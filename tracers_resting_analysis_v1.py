@@ -132,7 +132,7 @@ if not os.path.exists(plot_dir):
 for run_name in run_names:
     # Load the tracer matrix and process it
     tracers_matrix = np.load(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix_buffer3.npy'))
-    tracers_matrix_filled = fill_consecutive_zeros(tracers_matrix, 0)
+    tracers_matrix_filled = fill_consecutive_zeros(tracers_matrix, 1)
     zeros_lengths_vector = report_consecutive_zeros_lengths(tracers_matrix_filled)
 
     # Define bins and compute frequencies
