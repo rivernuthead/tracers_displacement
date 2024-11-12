@@ -5,7 +5,7 @@ Created on Thu Sep 29 16:58:53 2022
 @author: Marco
 """
 
-# import necessary packages
+
 import time
 start_time = time.time()
 import os
@@ -17,9 +17,8 @@ import geopandas as gpd
 import shutil
 from osgeo import gdal,ogr
 import re
-# from skimage import img_as_ubyte
 import imageio.core.util
-from skimage import morphology
+
 
 '''
 Run mode:
@@ -28,14 +27,13 @@ Run mode:
 '''
 
 # SET RUN NAME
-# runs = ['q05_1r7']
-runs = ['q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
-# runs = ['q05_1r1', 'q05_1r2', 'q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
-# runs = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
-# runs = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
+# run_names = ['q05_1r7']
+# run_names = ['q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+# run_names = ['q05_1r1', 'q05_1r2', 'q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+# run_names = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
+# run_names = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
-runs = ['q05_1r3copy']
-
+run_names = ['q05_1r3copy']
 
 # Script parameters:
 run_mode = 1
@@ -44,6 +42,9 @@ run_mode = 1
 w_dir = os.path.join(os.getcwd())
 input_dir = os.path.join(w_dir, 'input_data')
 output_dir = os.path.join(w_dir, 'output_data')
+tracer_extraction_folder_path = os.path.join(output_dir, 'tracer_extraction')
+if not os.path.exists(tracer_extraction_folder_path):
+    os.mkdir(tracer_extraction_folder_path)
 
 numbers = re.compile(r'(\d+)')
 
@@ -55,15 +56,13 @@ def numericalSort(value):
 def silence_imageio_warning(*args, **kwargs):
     pass
 
-#imageio.core.util._precision_warn = silence_imageio_warning
-
 # Set parameters
 gmr_thr = 25   # G - R threshold 
 dt = 4  #time between photos
 thr = 36 #area threshold of a single tracer
 ntracmax = 1000
 new_ntracmax = 2000
-area_threshold = 5
+area_threshold = 6
 areaperimeter_threshold = 0.5
 mask_buffer = 12
 tdiff = 4
@@ -71,30 +70,31 @@ tdiff = 4
 # INITIALIZE ARRAYS
 feeding_position = []
 
-
 # =============================================================================
-# # LOOP OVER RUNS
+# # LOOP OVER run_names
 # =============================================================================
-for run in runs:
-    print(run, ' is running...')
+for run_name in run_names:
+    print(run_name, ' is running...')
     
     t = 0
     i = 0
-    path_in = os.path.join(input_dir, 'cropped_images', run)
-    path_in_DEM = os.path.join(input_dir,'surveys',run[0:5])
-    path_in_DoD = os.path.join(input_dir,'DoDs','DoD_'+run[0:5])
+    path_in = os.path.join(input_dir, 'cropped_images', run_name)
+    path_in_DEM = os.path.join(input_dir,'surveys',run_name[0:5])
+    path_in_DoD = os.path.join(input_dir,'DoDs','DoD_'+run_name[0:5])
     
-    
-    
+    tracer_extraction_path = os.path.join(tracer_extraction_folder_path, run_name)
+    if not os.path.exists(tracer_extraction_path):
+        os.mkdir(tracer_extraction_path)
+        
     # Create outputs script directory
-    path_out = os.path.join(w_dir, 'output_data', 'output_images', run)
+    path_out = os.path.join(w_dir, 'output_data', 'output_images', run_name)
     if os.path.exists(path_out):
         shutil.rmtree(path_out, ignore_errors=False, onerror=None)
         os.mkdir(path_out) 
     else: 
         os.mkdir(path_out)  
         
-    run_param = np.loadtxt(os.path.join(input_dir, 'run_param_'+run[0:3]+'.txt'), skiprows=1, delimiter=',')
+    run_param = np.loadtxt(os.path.join(input_dir, 'run_param_'+run_name[0:3]+'.txt'), skiprows=1, delimiter=',')
     
     # =============================================================================
     # POSITION PARAMETERS
@@ -103,13 +103,14 @@ for run in runs:
     # List input directory files and filter for files that end with .jpg
     files_tot = sorted([f for f in os.listdir(path_in) if f.endswith('.jpg') and not f.startswith('.')])
     files = files_tot
+    files = sorted(files,key = numericalSort)
     
     all_tracers = np.zeros((len(files),ntracmax,5))
     all_tracers_appeared = np.zeros((len(files)-1,ntracmax,5))
     all_tracers_disappeared = np.zeros((len(files)-1,ntracmax,5))
     img_old = np.zeros((1440,4288)) 
     
-    frame_position = run_param[int(run[6])-1,1]
+    frame_position = run_param[int(run_name[6])-1,1]
     frame_position += 0.44
     scale_to_mm = 0.0016*frame_position + 0.4827
     
@@ -127,69 +128,109 @@ for run in runs:
     # =============================================================================
 
     
-    nDEM = int(run_param[int(run[6])-1,2])
-    nDoD1 = int(run_param[int(run[6])-1,3])
-    nDoD2 = int(run_param[int(run[6])-1,4])
+    nDEM = int(run_param[int(run_name[6])-1,2])
+    nDoD1 = int(run_param[int(run_name[6])-1,3])
+    nDoD2 = int(run_param[int(run_name[6])-1,4])
         
-    DEM = np.loadtxt(os.path.join(path_in_DEM, 'matrix_bed_norm_'+run[0:3]+'_1s'+ str(nDEM) +'.txt'),skiprows=8)
+    DEM = np.loadtxt(os.path.join(path_in_DEM, 'matrix_bed_norm_'+run_name[0:3]+'_1s'+ str(nDEM) +'.txt'),skiprows=8)
     DEM = np.where(DEM==-999, np.nan, DEM)
     DoD = np.loadtxt(os.path.join(path_in_DoD, 'DoD_'+ str(nDoD1) + '-'+ str(nDoD2) + '_filt_fill.txt'))
 
 
     array_mask = np.loadtxt(os.path.join(input_dir, 'array_mask.txt'))
     array_mask = np.where(array_mask != -999,1,np.nan)
-    if run == 'q10_1r8' or run == 'q10_1r9':
+    if run_name == 'q10_1r8' or run_name == 'q10_1r9':
         array_mask = np.loadtxt(os.path.join(w_dir, 'array_mask_reduced.txt'))
         array_mask = np.where(array_mask != -999,1,np.nan)
     
     
     DEM = DEM*array_mask
-    
-    for file in sorted(files,key = numericalSort):
+
+    for file in files:
         print('Time: ', t, 's')
-        path = os.path.join(path_in, file) # Build path
         
-        img = Image.open(path) # Open image
-        img_array = np.asarray(img)    # Convert image in numpy array
         
-        # IMPORT AND APPLY IMAGE MASK
-        img_mask = Image.open(os.path.join(input_dir, 'img_masks', run + '_img_domain_mask.tif'))
-        img_mask_array = np.asarray(img_mask)
+        # path = os.path.join(path_in, file) # Build path
+        
+        # img = Image.open(path) # Open image
+        # img_array = np.asarray(img)    # Convert image in numpy array
+        
+        # # IMPORT AND APPLY IMAGE MASK
+        # img_mask = Image.open(os.path.join(input_dir, 'img_masks', run_name + '_img_domain_mask.tif'))
+        # img_mask_array = np.asarray(img_mask)
 
           
-        # EXTRACT RGB BANDS AND CONVERT AS INT64:
-        band_red = img_array[:,:,0]*img_mask_array
-        band_red = band_red.astype(np.int64)
-        band_green = img_array[:,:,1]*img_mask_array
-        band_green = band_green.astype(np.int64)
-        band_blue = img_array[:,:,2]*img_mask_array
-        band_blue = band_blue.astype(np.int64)
+        # # EXTRACT RGB BANDS AND CONVERT AS INT64:
+        # band_red = img_array[:,:,0]*img_mask_array
+        # band_red = band_red.astype(np.int64)
+        # band_green = img_array[:,:,1]*img_mask_array
+        # band_green = band_green.astype(np.int64)
+        # band_blue = img_array[:,:,2]*img_mask_array
+        # band_blue = band_blue.astype(np.int64)
         
-        # EXTRACT THE FLUORESCENT TRACERS
-        # img_extract = ((band_green-band_red)>-1)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700) # modified 2024/10/20
-        img_extract = ((band_green-band_red)>-16)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700) # modified 2024/10/20
-        img_gmr_filt = np.where(img_extract==1, 1, np.nan)
+        # # EXTRACT THE FLUORESCENT TRACERS
+        # # img_extract = ((band_green-band_red)>-1)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700) # modified 2024/10/20
+        # # img_extract = ((band_green-band_red)>-20)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700) # modified 2024/10/20
+        # img_extract = ((band_green-band_red)>-19)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700)*(band_green>100)*(band_red<190) # modified 2024/11/11
+        # img_gmr_filt = np.where(img_extract==1, 1, np.nan)
         
-        # FILL SMALL HOLES
-        # Create a boolean mask where True represents 1's and False represents np.nan
-        mask = ~np.isnan(img_gmr_filt)
-        # Remove small holes (False regions, i.e., np.nan) surrounded by True (1's)
-        filled_mask = morphology.remove_small_holes(mask, area_threshold=10)
-        # Replace np.nan where the holes have been filled with 1
-        img_gmr_filt[filled_mask] = 1
+        # # FILL SMALL HOLES
+        # # Create a boolean mask where True represents 1's and False represents np.nan
+        # mask = ~np.isnan(img_gmr_filt)
+        # # Remove small holes (False regions, i.e., np.nan) surrounded by True (1's)
+        # filled_mask = morphology.remove_small_holes(mask, area_threshold=10)
+        # # Replace np.nan where the holes have been filled with 1
+        # img_gmr_filt[filled_mask] = 1
         
-        # RESCALE IMAGE WITH VALUES FROM 0 TO 255
-        img_gmr_filt = np.where(np.logical_not(np.isnan(img_gmr_filt)),255,0)
-        img_gmr_filt = img_gmr_filt.astype(np.uint8)
-        imageio.imwrite(os.path.join(path_out, str(t) + 's_gmr.png'), img_gmr_filt)
-
-         
+        # # # TEST TO REMOVE OBLONG COMPONENTS
+        # # img_gmr_filt = np.where(np.isnan(img_gmr_filt), 0, img_gmr_filt)
+        
+        # # # Label connected components
+        # # labeled_matrix, num_features = label(img_gmr_filt)
+        
+        # # # Define a compactness threshold; for example, aspect ratio of bounding box
+        # # compact_threshold = 4
+        
+        # # # Loop through each labeled component
+        # # for k in range(1, num_features + 1):
+        # #     slice_x, slice_y = find_objects(labeled_matrix == k)[0]
+        # #     component = labeled_matrix[slice_x, slice_y] == k
+            
+        # #     # Calculate dimensions of the bounding box
+        # #     height, width = component.shape
+        # #     aspect_ratio = max(height, width) / min(height, width) if min(height, width) > 0 else float('inf')
+            
+        # #     # If component is oblong (based on threshold), remove it
+        # #     if aspect_ratio > compact_threshold:
+        # #         labeled_matrix[slice_x, slice_y][component] = 0
+        
+        # # # Resulting trimmed matrix with oblong shapes removed
+        # # trimmed_matrix = (labeled_matrix > 0).astype(int)
+        
+        # # trimmed_matrix = np.where(trimmed_matrix==0, np.nan, trimmed_matrix)
+        
+        
+        
+        # # RESCALE IMAGE WITH VALUES FROM 0 TO 255
+        # img_gmr_filt = np.where(np.logical_not(np.isnan(img_gmr_filt)),255,0)
+        # img_gmr_filt = img_gmr_filt.astype(np.uint8)
+        # imageio.imwrite(os.path.join(tracer_extraction_path, str(t) + 's_gmr.png'), img_gmr_filt)
+        
+        tracer_ultimate_extraction_folder_path = os.path.join(tracer_extraction_folder_path, 'ultimate_extraction')
+        tracer_extraction_ultimate_path = os.path.join(tracer_ultimate_extraction_folder_path, run_name)
+        
+        if file == files[-1]:
+            img_gmr_filt = Image.open(os.path.join(tracer_extraction_path, str(t) + 's_gmr.png'))
+        else:
+            img_gmr_filt = Image.open(os.path.join(tracer_extraction_ultimate_path, str(t) + 's_gmr_ult.png'))
+        
+        
         # Make the difference between previous and current image
         # Get the difference between this two and then get appeared and disappeared fluorescent area
         if t >= tdiff and file != sorted(files,key = numericalSort)[-1]:
             
             # COLLECT CONSECUTIVE IMAGES
-            img_old = Image.open(os.path.join(path_out, str(t-tdiff) + 's_gmr.png')) # Open image
+            img_old = Image.open(os.path.join(tracer_extraction_ultimate_path, str(t-tdiff) + 's_gmr_ult.png')) # Open image
             img_old_array = np.asarray(img_old)    # Convert image in numpy array
             
             # COMPUTE THE DIFFERENCE
@@ -199,24 +240,22 @@ for run in runs:
             diff = img_gmr_filt_bool - img_old_bool
             # print('max(diff): ', np.max(diff), '   min(diff): ', np.min(diff))
             
-            
-            # img_diff_print = imageio.imwrite(os.path.join(path_out,str(t) + 's_diff.png'), diff)
             tracers_appeared = np.where(diff==1,255,0)
             tracers_appeared = tracers_appeared.astype(np.uint8)
-            img_ta_print = imageio.imwrite(os.path.join(path_out,str(t) + 's_ta.png'), tracers_appeared)
+            img_ta_print = imageio.imwrite(os.path.join(tracer_extraction_ultimate_path,str(t) + 's_ta.png'), tracers_appeared)
             tracers_disappeared = np.where(diff==-1,255,0)
             tracers_disappeared = tracers_disappeared.astype(np.uint8)
-            img_td_print = imageio.imwrite(os.path.join(path_out,str(t) + 's_td.png'), tracers_disappeared)
+            img_td_print = imageio.imwrite(os.path.join(tracer_extraction_ultimate_path,str(t) + 's_td.png'), tracers_disappeared)
         
           
         # FROM RASTER TO VECTOR
         # get raster data source N.B. you need to have the file on your pc 
-        open_image = gdal.Open(os.path.join(path_out, str(t)+ "s_gmr.png"))
+        open_image = gdal.Open(os.path.join(tracer_extraction_ultimate_path, str(t)+ "s_gmr_ult.png"))
         input_band = open_image.GetRasterBand(1)
         if t >= tdiff and file != sorted(files,key = numericalSort)[-1]:
-            open_image_ta = gdal.Open(os.path.join(path_out, str(t)+ "s_ta.png"))
+            open_image_ta = gdal.Open(os.path.join(tracer_extraction_ultimate_path, str(t)+ "s_ta.png"))
             input_band_ta = open_image_ta.GetRasterBand(1)
-            open_image_td = gdal.Open(os.path.join(path_out, str(t)+ "s_td.png"))
+            open_image_td = gdal.Open(os.path.join(tracer_extraction_ultimate_path, str(t)+ "s_td.png"))
             input_band_td = open_image_td.GetRasterBand(1)
             
         # create output data source
@@ -294,7 +333,7 @@ for run in runs:
         tracers.to_file(str(t) + "s_centroids.shp")
         # create a dataframe of n tracc, x, y
         if file == sorted(files,key = numericalSort)[-1]:
-            frame_position = run_param[int(run[6])-1,5] # Frame position with respect to the laser CRS
+            frame_position = run_param[int(run_name[6])-1,5] # Frame position with respect to the laser CRS
             frame_position += 0.44 # Frame position with respect to the CRS of the DEM (The beginning of the DEM is at -0.44 meters with respect to the laser survey CRS)
             scale_to_mm = 0.0016*frame_position + 0.4827 # Factor scale to convert px in mm (it change considering the frame position - change the distance between the mean riverbed and the camera position)
             x_center = frame_position*1000 + 1100 # Position of the center of the frame [mm]
@@ -431,12 +470,12 @@ for run in runs:
     
 
 
-    np.save(os.path.join(path_out,'alltracers_'+ run +'.npy'),all_tracers)
-    np.save(os.path.join(path_out, 'tracers_appeared_'+ run +'.npy'),all_tracers_appeared)
-    np.save(os.path.join(path_out, 'tracers_disappeared_'+ run +'.npy'),all_tracers_disappeared)
+    np.save(os.path.join(path_out,'alltracers_'+ run_name +'.npy'),all_tracers)
+    np.save(os.path.join(path_out, 'tracers_appeared_'+ run_name +'.npy'),all_tracers_appeared)
+    np.save(os.path.join(path_out, 'tracers_disappeared_'+ run_name +'.npy'),all_tracers_disappeared)
     
     print('########################')
-    print(run,' extraction completed') 
+    print(run_name,' extraction completed') 
     print('########################')  
     
     # =============================================================================
@@ -445,8 +484,8 @@ for run in runs:
     # At each tracer spatial coordinate is substracted the coordinate of the
     # centroid of the feeding position to have the actual traveled distance
     
-    run_param = np.loadtxt(os.path.join(input_dir, 'run_param_'+run[0:3]+'.txt'), skiprows=1, delimiter=',')
-    frame_position = run_param[int(run[6])-1,1] # Extract frame position from run parameters file
+    run_param = np.loadtxt(os.path.join(input_dir, 'run_param_'+run_name[0:3]+'.txt'), skiprows=1, delimiter=',')
+    frame_position = run_param[int(run_name[6])-1,1] # Extract frame position from run parameters file
     frame_position += 0.44 # Frame position in DEM CRS
     scale_to_mm = 0.0016*frame_position + 0.4827 # Factor scaling from px to mm
     x_center = frame_position*1000 + 1100 # Frame centroids x-coordinates in DEM CRS
@@ -476,7 +515,7 @@ for run in runs:
     
     x_start = min(feeding.x) # Feeding x-coordinate referred to the DEM CRS (first column of the DEM) as the minimum of the x-coordinate of each detected feeding area.
     
-    print(run, ' x start: ', x_start)
+    print(run_name, ' x start: ', x_start)
             
     new_tracers = np.zeros((len(all_tracers),new_ntracmax,4))
     new_tracers_appeared = np.zeros((len(all_tracers_appeared),new_ntracmax,4))
@@ -525,13 +564,13 @@ for run in runs:
             page = np.vstack((page,newrow))
         new_tracers_disappeared[i,:,:] = page    
          
-    np.save(os.path.join(path_out, 'tracers_reduced_'+ run +'.npy'),new_tracers)
-    np.save(os.path.join(path_out, 'tracers_appeared_reduced_'+ run +'.npy'),new_tracers_appeared)
-    np.save(os.path.join(path_out, 'tracers_disappeared_reduced_'+ run +'.npy'),new_tracers_disappeared)
+    np.save(os.path.join(path_out, 'tracers_reduced_'+ run_name +'.npy'),new_tracers)
+    np.save(os.path.join(path_out, 'tracers_appeared_reduced_'+ run_name +'.npy'),new_tracers_appeared)
+    np.save(os.path.join(path_out, 'tracers_disappeared_reduced_'+ run_name +'.npy'),new_tracers_disappeared)
     
     
     print('########################')
-    print(run,' reduction completed') 
+    print(run_name,' reduction completed') 
     print('########################')    
 
     
@@ -566,12 +605,12 @@ for run in runs:
     tracers_appeared_stopped[-1,:,:] = new_tracers_appeared[-1,:,:] 
     tracers_disappeared_stopped[0,:,:] = new_tracers_disappeared[0,:,:] 
     
-    np.save(os.path.join(path_out, 'tracers_appeared_reduced_stopped_'+ run +'.npy'),tracers_appeared_stopped)
-    np.save(os.path.join(path_out, 'tracers_disappeared_reduced_stopped_'+ run +'.npy'),tracers_disappeared_stopped)
+    np.save(os.path.join(path_out, 'tracers_appeared_reduced_stopped_'+ run_name +'.npy'),tracers_appeared_stopped)
+    np.save(os.path.join(path_out, 'tracers_disappeared_reduced_stopped_'+ run_name +'.npy'),tracers_disappeared_stopped)
     
     
     print('########################')
-    print(run,' completed') 
+    print(run_name,' completed') 
     print('########################') 
 
     print('\n\n\n')
@@ -579,7 +618,7 @@ for run in runs:
 
 
 # SAVE REPORT
-np.savetxt(os.path.join(output_dir, 'feeding_position.txt'), feeding_position, header=str(runs))
+np.savetxt(os.path.join(output_dir, 'feeding_position.txt'), feeding_position, header=str(run_names))
     
 
 end_time = time.time()

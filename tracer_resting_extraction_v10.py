@@ -18,8 +18,10 @@ import numpy as np
 # SCRIPT PARAMETERS
 # =============================================================================
 run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+run_names = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
 
-# run_names = ['q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+run_names = ['q05_1r3']
+run_names = ['q05_1r3copy']
 
 # =============================================================================
 # FOLDERS SETUP
@@ -28,10 +30,6 @@ run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q
 w_dir = os.path.join(os.getcwd())
 input_dir = os.path.join(w_dir, 'input_data')
 output_dir = os.path.join(w_dir, 'output_data')
-
-# NEIGHBOURHOOD ANALYSIS PARAMETERS
-# delta_x = 10
-# delta_y = 10
 
 # =============================================================================
 # FUNCTIONS
@@ -115,7 +113,7 @@ for run_name in run_names:
     tracers_matrix[:,4:6] = tracers_matrix[:,:2]
     tracers_matrix = set_first_nan_to_one(tracers_matrix)
     
-    dx, dy = 3, 3
+    dx, dy = 5, 5
     first_iteration = True
 
     for t in range(1, tracers_reduced.shape[0]):
@@ -213,8 +211,8 @@ for run_name in run_names:
 
     if not os.path.exists(os.path.join(output_dir, 'tracer_matrix')):
             os.makedirs(os.path.join(output_dir, 'tracer_matrix'))
-            
-    np.save(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix_buffer3.npy'), tracers_matrix)
+    
+    np.save(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix.npy'), tracers_matrix)
 
 
 

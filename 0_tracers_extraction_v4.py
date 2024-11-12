@@ -127,9 +127,9 @@ for run in runs:
     # =============================================================================
 
     
-    nDEM = int(run_param[int(run[6])-1,2])
-    nDoD1 = int(run_param[int(run[6])-1,3])
-    nDoD2 = int(run_param[int(run[6])-1,4])
+    nDEM = int(run_param[int(run[6:])-1,2])
+    nDoD1 = int(run_param[int(run[6:])-1,3])
+    nDoD2 = int(run_param[int(run[6:])-1,4])
         
     DEM = np.loadtxt(os.path.join(path_in_DEM, 'matrix_bed_norm_'+run[0:3]+'_1s'+ str(nDEM) +'.txt'),skiprows=8)
     DEM = np.where(DEM==-999, np.nan, DEM)
@@ -294,7 +294,7 @@ for run in runs:
         tracers.to_file(str(t) + "s_centroids.shp")
         # create a dataframe of n tracc, x, y
         if file == sorted(files,key = numericalSort)[-1]:
-            frame_position = run_param[int(run[6])-1,5] # Frame position with respect to the laser CRS
+            frame_position = run_param[int(run[6:])-1,5] # Frame position with respect to the laser CRS
             frame_position += 0.44 # Frame position with respect to the CRS of the DEM (The beginning of the DEM is at -0.44 meters with respect to the laser survey CRS)
             scale_to_mm = 0.0016*frame_position + 0.4827 # Factor scale to convert px in mm (it change considering the frame position - change the distance between the mean riverbed and the camera position)
             x_center = frame_position*1000 + 1100 # Position of the center of the frame [mm]
@@ -446,7 +446,7 @@ for run in runs:
     # centroid of the feeding position to have the actual traveled distance
     
     run_param = np.loadtxt(os.path.join(input_dir, 'run_param_'+run[0:3]+'.txt'), skiprows=1, delimiter=',')
-    frame_position = run_param[int(run[6])-1,1] # Extract frame position from run parameters file
+    frame_position = run_param[int(run[6:])-1,1] # Extract frame position from run parameters file
     frame_position += 0.44 # Frame position in DEM CRS
     scale_to_mm = 0.0016*frame_position + 0.4827 # Factor scaling from px to mm
     x_center = frame_position*1000 + 1100 # Frame centroids x-coordinates in DEM CRS
