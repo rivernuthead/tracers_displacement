@@ -247,10 +247,18 @@ for run_name in run_names:
             tracers_disappeared = tracers_disappeared.astype(np.uint8)
             img_td_print = imageio.imwrite(os.path.join(tracer_extraction_ultimate_path,str(t) + 's_td.png'), tracers_disappeared)
         
-          
+    
+        
+    
+    
         # FROM RASTER TO VECTOR
         # get raster data source N.B. you need to have the file on your pc 
-        open_image = gdal.Open(os.path.join(tracer_extraction_ultimate_path, str(t)+ "s_gmr_ult.png"))
+        if file == files[-1]:
+            open_image = gdal.Open(os.path.join(tracer_extraction_path, str(t) + 's_gmr.png'))
+        else:
+            open_image = gdal.Open(os.path.join(tracer_extraction_ultimate_path, str(t)+ "s_gmr_ult.png"))
+        
+        
         input_band = open_image.GetRasterBand(1)
         if t >= tdiff and file != sorted(files,key = numericalSort)[-1]:
             open_image_ta = gdal.Open(os.path.join(tracer_extraction_ultimate_path, str(t)+ "s_ta.png"))

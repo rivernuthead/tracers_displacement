@@ -12,14 +12,9 @@ import os
 from PIL import Image
 import numpy as np
 import imageio
-# import pandas as pd
-# import geopandas as gpd
-# import shutil
-# from osgeo import gdal,ogr
 import re
-from scipy.ndimage import label, find_objects
+from scipy.ndimage import label, find_objects, convolve
 import imageio.core.util
-# from skimage import morphology
 
 # =============================================================================
 # FUNCTIONS
@@ -59,6 +54,43 @@ def clean_matrix(matrix, compact_threshold, min_size):
     # Return cleaned binary matrix
     return (labeled_matrix > 0).astype(int)
 
+
+def fill_small_holes(matrix, max_hole_size=10, surround_threshold=7):
+    """
+    Fills small holes (connected 0-regions) in a binary matrix, and fills 0s surrounded by a majority of 1s.
+
+    Parameters:
+    - matrix (np.ndarray): Binary matrix (2D) with values 0 and 1.
+    - max_hole_size (int): Maximum size (number of 0s) for a hole to be filled.
+    - surround_threshold (int): Minimum count of surrounding 1s to fill a 0.
+
+    Returns:
+    - np.ndarray: Binary matrix with small holes and isolated 0s filled.
+    """
+    # Step 1: Fill small holes
+    inverted_matrix = (matrix == 0).astype(int)
+    holes_labeled, num_holes = label(inverted_matrix)
+    
+    for i in range(1, num_holes + 1):
+        slice_x, slice_y = find_objects(holes_labeled == i)[0]
+        hole = holes_labeled[slice_x, slice_y] == i
+        hole_size = hole.sum()
+        
+        # Fill the hole if it is smaller than max_hole_size
+        if hole_size <= max_hole_size:
+            matrix[slice_x, slice_y][hole] = 1
+
+    # Step 2: Fill isolated 0s surrounded by a majority of 1s
+    kernel = np.ones((3, 3), dtype=int)
+    kernel[1, 1] = 0  # Exclude the center
+
+    # Convolve to count surrounding 1s for each cell
+    surrounding_counts = convolve(matrix, kernel, mode='constant', cval=0)
+
+    # Fill 0s that are surrounded by a certain threshold of 1s
+    matrix[(matrix == 0) & (surrounding_counts >= surround_threshold)] = 1
+
+    return matrix
 # =============================================================================
 
 
@@ -267,9 +299,13 @@ for run_name in run_names:
         band_blue = img_array[:,:,2]*img_mask_array
         band_blue = band_blue.astype(np.int64)
         
-        img_extract = ((band_green-band_red)>-25)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700)*(band_green>100)*(band_red<190)*mask_filt_array # modified 2024/11/11
+        img_extract = ((band_green-band_red)>-24)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700)*mask_filt_array # modified 2024/11/11
         
+        # OVERLAP OLD EXTRACTIO AND NEW EXTRACTION
         tracers_extraction_img = img_extract+image_rmg
+        
+        tracers_extraction_img = fill_small_holes(tracers_extraction_img, max_hole_size=3, surround_threshold=6)
+        # tracers_extraction_img = fill_small_holes(tracers_extraction_img, max_hole_size=3, surround_threshold=5)
         tracers_extraction_img = np.where(tracers_extraction_img>0,1,np.nan)
         
         
