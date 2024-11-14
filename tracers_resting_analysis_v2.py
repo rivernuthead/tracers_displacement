@@ -117,11 +117,14 @@ def calculate_consecutive_periods(arr, t, y):
 
 # =============================================================================
 # SCRIPT PARAMETERS
-run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+# run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
 # run_names = ['q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
-run_names = ['q05_1r3']
+# run_names = ['q05_1r3']
 run_names = ['q05_1r3copy']
 # run_names = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
+
+# PROXIMITY ANALYSIS
+dx, dy = 3, 3
 
 # FOLDERS SETUP
 # =============================================================================
@@ -142,6 +145,7 @@ if inactivity_periods_analysis:
     # for n in [0, 1, 2, 5, 10, 15, 20]:
     for n in [0]:
         inactivity_periods = []
+        activity_periods = []
         
         for run_name in run_names:
             
@@ -149,7 +153,7 @@ if inactivity_periods_analysis:
             
 
             # LOAD DATA
-            tracer_matrix = np.load(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix.npy'))
+            tracer_matrix = np.load(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix'+str(dx)+'x'+str(dy)+'.npy'))
             
             # tracer_matrix = np.delete(tracer_matrix, 6, axis=1)
             # tracer_matrix[:,6] = np.where(tracer_matrix[:,6]==0, 1,tracer_matrix[:,6])
@@ -174,8 +178,10 @@ if inactivity_periods_analysis:
             
             
             zeros_lengths_vector = np.copy(zeros_stack)
-            
             inactivity_periods.append(zeros_stack.flatten())
+            
+            ones_lengths_vector = np.copy(ones_stack)
+            activity_periods.append(ones_stack.flatten())
             
             if inactivity_periods_analysis_single_charts:
                 # Define bins and compute frequencies
@@ -207,7 +213,7 @@ if inactivity_periods_analysis:
                 ax2.tick_params(axis='y', labelcolor='orange')
                 
                 # Add titles, labels, and legend
-                plt.title(f"Normalized Distribution of Consecutive Zero Lengths - {run_name} - Fill length: "+str(n), fontsize=16, fontweight='bold')
+                plt.title(f"Normalized Distribution of Inactivity Periods Lengths - {run_name}\nFill length: "+str(n)+' - Proximity analysis: '+str(dx)+'x'+str(dy), fontsize=16, fontweight='bold')
                 
                 # Custom x-ticks for better readability
                 ax1.set_xticks(np.arange(0, max_value + 5, 5))
@@ -227,7 +233,7 @@ if inactivity_periods_analysis:
             
             
         # =============================================================================
-        #         
+        # INACTIVITY PERIODS LENGTH ANALYSIS
         # =============================================================================
         # Define bins and compute frequencies
         inactivity_periods = np.concatenate(inactivity_periods)
@@ -247,7 +253,7 @@ if inactivity_periods_analysis:
         # Plot histogram with plt.bar on the left y-axis
         ax1.bar(bins[:-1], counts_normalized, color='skyblue', edgecolor='darkblue', alpha=0.75, width=0.8)
         ax1.set_ylim(0, 0.4)  # Set limits for left y-axis
-        ax1.set_xlabel("Length of Consecutive Zeros", fontsize=14)
+        ax1.set_xlabel("Length of Inactivity periods", fontsize=14)
         ax1.set_ylabel("Probability (Histogram)", fontsize=14, color='blue')
         ax1.tick_params(axis='y', labelcolor='blue')
         
@@ -259,7 +265,7 @@ if inactivity_periods_analysis:
         ax2.tick_params(axis='y', labelcolor='orange')
         
         # Add titles, labels, and legend
-        plt.title("Normalized Distribution of Consecutive Zero Lengths for all the runs - Fill length: "+str(n), fontsize=16, fontweight='bold')
+        plt.title("Normalized Distribution of Inactivity Periods Lengths for all the runs\nFill length: "+str(n)+' - Proximity analysis: '+str(dx)+'x'+str(dy), fontsize=16, fontweight='bold')
         
         # Custom x-ticks for better readability
         ax1.set_xticks(np.arange(0, max_value + 5, 5))
@@ -273,12 +279,63 @@ if inactivity_periods_analysis:
                  transform=ax1.transAxes, ha='center', va='center', fontsize=12, color='grey')
         
         # Save and display
-        plt.savefig(os.path.join(plot_dir, 'normalized_consec_zero_periods_length.pdf'), dpi=800, bbox_inches='tight')
+        plt.savefig(os.path.join(plot_dir, 'normalized_inactivity_periods_length.pdf'), dpi=800, bbox_inches='tight')
         plt.show()
             
         # =============================================================================
 
-
+        
+        # =============================================================================
+        # ACTIVITY PERIODS LENGTH ANALYSIS
+        # =============================================================================
+        # Define bins and compute frequencies
+        activity_periods = np.concatenate(activity_periods)
+        max_value = int(np.nanmax(activity_periods))
+        bins = np.arange(1, max_value + 2)
+        counts, _ = np.histogram(activity_periods, bins=bins)
+        
+        # Normalize counts to get probabilities
+        counts_normalized = counts / counts.sum()
+        
+        # Compute cumulative sum of the normalized counts
+        cumulative_counts = np.cumsum(counts_normalized)
+        
+        # Set up the figure
+        fig, ax1 = plt.subplots(figsize=(20, 8))
+        
+        # Plot histogram with plt.bar on the left y-axis
+        ax1.bar(bins[:-1], counts_normalized, color='skyblue', edgecolor='darkblue', alpha=0.75, width=0.8)
+        ax1.set_ylim(0, 0.4)  # Set limits for left y-axis
+        ax1.set_xlabel("Length of Activity Periods", fontsize=14)
+        ax1.set_ylabel("Probability (Histogram)", fontsize=14, color='blue')
+        ax1.tick_params(axis='y', labelcolor='blue')
+        
+        # Create a secondary y-axis for the cumulative sum
+        ax2 = ax1.twinx()
+        ax2.plot(bins[:-1], cumulative_counts, color='orange', linestyle='-', marker='o', linewidth=2, label="Cumulative Sum")
+        ax2.set_ylim(0, 1)  # Set limits for right y-axis
+        ax2.set_ylabel("Cumulative Probability", fontsize=14, color='orange')
+        ax2.tick_params(axis='y', labelcolor='orange')
+        
+        # Add titles, labels, and legend
+        plt.title("Normalized Distribution of Activity Periods Lengths for all the runs\nFill length: "+str(n)+' - Proximity analysis: '+str(dx)+'x'+str(dy), fontsize=16, fontweight='bold')
+        
+        # Custom x-ticks for better readability
+        ax1.set_xticks(np.arange(0, max_value + 5, 5))
+        
+        # Add grid and background color to the left y-axis
+        ax2.grid(axis='y', linestyle='--', alpha=1)
+        ax2.set_facecolor('whitesmoke')
+        
+        # Add footer with file info
+        plt.text(0.5, -0.12, f"Generated by: {os.path.basename(__file__)}", 
+                 transform=ax1.transAxes, ha='center', va='center', fontsize=12, color='grey')
+        
+        # Save and display
+        plt.savefig(os.path.join(plot_dir, 'normalized_activity_periods_length.pdf'), dpi=800, bbox_inches='tight')
+        plt.show()
+            
+        # =============================================================================
 # =============================================================================
 # INVESTIGATE ACTIVE PERIODS AFTER THE TEMPORAL ANALYSIS
 # =============================================================================
@@ -295,7 +352,7 @@ if activity_periods_analysis:
     for run_name in run_names:
         print(run_name, ' is running...')
         # LOAD DATA
-        tracers_matrix = np.load(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix.npy'))
+        tracers_matrix = np.load(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix'+str(dx)+'x'+str(dy)+'.npy'))
         periods_matrix = tracers_matrix[:,6:]
         
         N_array     = [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 100, 120, 140, 160]
@@ -304,6 +361,7 @@ if activity_periods_analysis:
 
         
         for n in N_array:
+            
             # PERFORM TEMPORAL ANAYSIS - FILL INACTIVE PERIODS <=N LONG
             tracers_matrix_filled = fill_consecutive_zeros(periods_matrix, n)
             
@@ -325,7 +383,7 @@ if activity_periods_analysis:
         plt.plot(N_array, ratio_array, marker='o', linestyle='-', label=run_name)
     plt.xlabel('Filling analysis window dimension')
     plt.ylabel('Actived once positions / All positions')
-    plt.title('Effects of temporal filtering - Run ' +  run_name[:5])
+    plt.title('Effects of temporal filtering - Run ' +  run_name[:5] + '\nProximity analysis: '+str(dx)+'x'+str(dy))
     plt.grid(True)
     plt.ylim(0.2, 1)
     plt.legend()

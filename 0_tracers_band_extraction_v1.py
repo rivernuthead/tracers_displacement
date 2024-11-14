@@ -323,5 +323,3 @@ for run_name in run_names:
         i +=1
         t += dt
     
-    
-    

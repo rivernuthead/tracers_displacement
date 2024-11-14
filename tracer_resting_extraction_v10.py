@@ -212,7 +212,7 @@ for run_name in run_names:
     if not os.path.exists(os.path.join(output_dir, 'tracer_matrix')):
             os.makedirs(os.path.join(output_dir, 'tracer_matrix'))
     
-    np.save(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix.npy'), tracers_matrix)
+    np.save(os.path.join(output_dir, 'tracer_matrix', run_name + '_tracer_matrix'+str(dx)+'x'+str(dy)+'.npy'), tracers_matrix)
 
 
 
