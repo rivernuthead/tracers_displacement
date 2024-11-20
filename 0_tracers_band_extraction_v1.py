@@ -91,6 +91,14 @@ def fill_small_holes(matrix, max_hole_size=10, surround_threshold=7):
     matrix[(matrix == 0) & (surrounding_counts >= surround_threshold)] = 1
 
     return matrix
+
+def numericalSort(value):
+    parts = numbers.split(value)
+    parts[1::2] = map(int, parts[1::2])
+    return parts
+
+def silence_imageio_warning(*args, **kwargs):
+    pass
 # =============================================================================
 
 
@@ -101,14 +109,16 @@ Run mode:
 '''
 
 # SET RUN NAME
-# run_names = ['q05_1r7']
-# run_names = ['q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+# run_names = ['q05_1r1', 'q05_1r2']
+
 # run_names = ['q05_1r1', 'q05_1r2', 'q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
 # run_names = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
-# run_names = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
+run_names = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
-run_names = ['q05_1r3copy']
+# run_names = ['q05_1r3copy']
+# run_names = ['q05_1r12']
 
+2
 
 # Script parameters:
 run_mode = 1
@@ -121,130 +131,138 @@ tracer_extraction_folder_path = os.path.join(output_dir, 'tracer_extraction')
 if not os.path.exists(tracer_extraction_folder_path):
     os.mkdir(tracer_extraction_folder_path)
 
-numbers = re.compile(r'(\d+)')
-
-def numericalSort(value):
-    parts = numbers.split(value)
-    parts[1::2] = map(int, parts[1::2])
-    return parts
-
-def silence_imageio_warning(*args, **kwargs):
-    pass
-
-#imageio.core.util._precision_warn = silence_imageio_warning
 
 # Set parameters
-gmr_thr = 25   # G - R threshold 
 dt = 4  #time between photos
-thr = 36 #area threshold of a single tracer
-ntracmax = 1000
-new_ntracmax = 2000
-area_threshold = 6
-areaperimeter_threshold = 0.5
-mask_buffer = 12
-tdiff = 4
 
 # INITIALIZE ARRAYS
 feeding_position = []
 
-
-# =============================================================================
-# # LOOP OVER run_names
-# =============================================================================
-for run_name in run_names:
-    print(run_name, ' is running...')
-    
-    tracers_extraction_imgs = []
-    
-    t = 0
-    i = 0
-    path_in = os.path.join(input_dir, 'cropped_images', run_name)
-    
-    tracer_extraction_path = os.path.join(tracer_extraction_folder_path, run_name)
-    if not os.path.exists(tracer_extraction_path):
-        os.mkdir(tracer_extraction_path)
-        
-    # Create outputs script directory
-    path_out = os.path.join(w_dir, 'output_data', 'output_images', run_name)
-    if not os.path.exists(path_out):
-        os.mkdir(path_out) 
-        
-    run_param = np.loadtxt(os.path.join(input_dir, 'run_param_'+run_name[0:3]+'.txt'), skiprows=1, delimiter=',')
-    
-    # =============================================================================
-    # POSITION PARAMETERS
-    # =============================================================================
-
-    # List input directory files and filter for files that end with .jpg
-    files_tot = sorted([f for f in os.listdir(path_in) if f.endswith('.jpg') and not f.startswith('.')])
-    files = sorted(files_tot,key = numericalSort)
-    
-#%%
-    for file in files:
-        # print('Time: ', t, 's')
-        path = os.path.join(path_in, file) # Build path
-        
-        img = Image.open(path) # Open image
-        img_array = np.asarray(img)    # Convert image in numpy array
-        
-        # IMPORT AND APPLY IMAGE MASK
-        img_mask = Image.open(os.path.join(input_dir, 'img_masks', run_name + '_img_domain_mask.tif'))
-        img_mask_array = np.asarray(img_mask)
-
-          
-        # EXTRACT RGB BANDS AND CONVERT AS INT64:
-        band_red = img_array[:,:,0]*img_mask_array
-        band_red = band_red.astype(np.int64)
-        band_green = img_array[:,:,1]*img_mask_array
-        band_green = band_green.astype(np.int64)
-        band_blue = img_array[:,:,2]*img_mask_array
-        band_blue = band_blue.astype(np.int64)
-        
-        # EXTRACT THE FLUORESCENT TRACERS
-        # img_extract = ((band_green-band_red)>-1)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700) # modified 2024/10/20
-        # img_extract = ((band_green-band_red)>-20)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700) # modified 2024/10/20
-        img_extract = ((band_green-band_red)>-10)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700)*(band_green>100)*(band_red<190) # modified 2024/11/11
-        img_gmr_filt = np.where(img_extract==1, 1, np.nan)
-        
-
-        tracers_extraction_imgs.append(img_gmr_filt)
-        
-        # RESCALE IMAGE WITH VALUES FROM 0 TO 255
-        img_gmr_filt = np.where(np.logical_not(np.isnan(img_gmr_filt)),255,0)
-        img_gmr_filt = img_gmr_filt.astype(np.uint8)
-        imageio.imwrite(os.path.join(tracer_extraction_path, str(t) + 's_gmr.png'), img_gmr_filt)
-        
-        
-        i +=1
-        t += dt
-    
-    # STACK ALL THE TRACER EXTRACTION MAPS
-    tracers_extraction_imgs_stack = np.stack(tracers_extraction_imgs)
-    np.save(os.path.join(tracer_extraction_path, 'tracer_extraction_images_stack.npy'), tracers_extraction_imgs_stack)
-
-end_time = time.time()
-execution_time = end_time - start_time
-print(f"Execution time: {execution_time:.4f} seconds")
-
+gmr_generator = False
 
 #%%
-# COMPUTE THE ENVELOPE
-for run_name in run_names:
+if gmr_generator:
+    # =============================================================================
+    # # LOOP OVER run_names
+    # =============================================================================
+    for run_name in run_names:
+        
+        
+        
+        numbers = re.compile(r'(\d+)')
+        
+        print(run_name, ' is running...')
+        
+        tracers_extraction_imgs = []
+        
+        t = 0
+        i = 0
+        path_in = os.path.join(input_dir, 'cropped_images', run_name)
+        
+        tracer_extraction_path = os.path.join(tracer_extraction_folder_path, run_name)
+        if not os.path.exists(tracer_extraction_path):
+            os.mkdir(tracer_extraction_path)
+            
+        # Create outputs script directory
+        path_out = os.path.join(w_dir, 'output_data', 'output_images', run_name)
+        if not os.path.exists(path_out):
+            os.mkdir(path_out) 
+            
+        run_param = np.loadtxt(os.path.join(input_dir, 'run_param_'+run_name[0:3]+'.txt'), skiprows=1, delimiter=',')
+        
+        # =============================================================================
+        # POSITION PARAMETERS
+        # =============================================================================
     
-    tracer_extraction_path = os.path.join(tracer_extraction_folder_path, run_name)
+        # List input directory files and filter for files that end with .jpg
+        files_tot = sorted([f for f in os.listdir(path_in) if f.endswith('.jpg') and not f.startswith('.')])
+        files = sorted(files_tot,key = numericalSort)
+        print()
     
-    tracers_extraction_imgs_stack = np.load(os.path.join(tracer_extraction_path, 'tracer_extraction_images_stack.npy'))
-    tracers_extraction_imgs_envelope = np.nansum(tracers_extraction_imgs_stack, axis=0)
+        for file in files:
+            # print('Time: ', t, 's')
+            path = os.path.join(path_in, file) # Build path
+            
+            img = Image.open(path) # Open image
+            img_array = np.asarray(img)    # Convert image in numpy array
+            
+            # IMPORT AND APPLY IMAGE MASK
+            img_mask = Image.open(os.path.join(input_dir, 'img_masks', run_name + '_img_domain_mask.tif'))
+            img_mask_array = np.asarray(img_mask)
     
-    # FILT
-    tracers_extraction_imgs_envelope = 1*(tracers_extraction_imgs_envelope>2)
-    np.save(os.path.join(tracer_extraction_path, 'tracer_extraction_image_envelope.npy'), tracers_extraction_imgs_envelope)
+              
+            # EXTRACT RGB BANDS AND CONVERT AS INT64:
+            band_red = img_array[:,:,0]*img_mask_array
+            band_red = band_red.astype(np.int64)
+            band_green = img_array[:,:,1]*img_mask_array
+            band_green = band_green.astype(np.int64)
+            band_blue = img_array[:,:,2]*img_mask_array
+            band_blue = band_blue.astype(np.int64)
+            
+            # EXTRACT THE FLUORESCENT TRACERS
+            # img_extract = ((band_green-band_red)>-1)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700) # modified 2024/10/20
+            # img_extract = ((band_green-band_red)>-20)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700) # modified 2024/10/20
+            img_extract = ((band_green-band_red)>-10)*((band_red+band_green+band_blue)>350)*((band_red+band_green+band_blue)<700)*(band_green>100)*(band_red<190) # modified 2024/11/11
+            img_gmr_filt = np.where(img_extract==1, 1, np.nan)
+            
+            if file ==files[0]:
+                img_envelope = img_gmr_filt
+            else:
+                img_envelope += img_gmr_filt
+                
+            # tracers_extraction_imgs.append(img_gmr_filt)
+            
+            # RESCALE IMAGE WITH VALUES FROM 0 TO 255
+            img_gmr_filt = np.where(np.logical_not(np.isnan(img_gmr_filt)),255,0)
+            img_gmr_filt = img_gmr_filt.astype(np.uint8)
+            imageio.imwrite(os.path.join(tracer_extraction_path, str(t) + 's_gmr.png'), img_gmr_filt)
+            
+            
+            i +=1
+            t += dt
+        
+        # STACK ALL THE TRACER EXTRACTION MAPS
+        # tracers_extraction_imgs_stack = np.stack(tracers_extraction_imgs)
+        img_envelope = 1*(img_envelope>2)
+        np.save(os.path.join(tracer_extraction_path, 'tracer_extraction_envelope.npy'), img_envelope)
+    
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time: {execution_time:.4f} seconds")
+    
+    
+    
+    # # COMPUTE THE ENVELOPE
+    # for run_name in run_names:
+    #     print(run_name, ' is running...')
+        
+    #     tracer_extraction_path = os.path.join(tracer_extraction_folder_path, run_name)
+        
+    #     tracers_extraction_imgs_envelope = np.load(os.path.join(tracer_extraction_path, 'tracer_extraction_envelope.npy'))
+    #     # tracers_extraction_imgs_envelope = np.nansum(tracers_extraction_imgs_stack, axis=0)
+        
+    #     # FILT
+    #     tracers_extraction_imgs_envelope = 1*(tracers_extraction_imgs_envelope>2)
+    #     np.save(os.path.join(tracer_extraction_path, 'tracer_extraction_image_envelope.npy'), tracers_extraction_imgs_envelope)
 
 #%%
 # LOAD, FILT AND SAVE THE FILTERIN MASK
 for run_name in run_names:
+    
+    numbers = re.compile(r'(\d+)')
+    
+    
+    print(run_name, ' is running...')
+    
+    
+    # List input directory files and filter for files that end with .jpg
+    path_in = os.path.join(input_dir, 'cropped_images', run_name)
+    files_tot = sorted([f for f in os.listdir(path_in) if f.endswith('.jpg') and not f.startswith('.')])
+    files = sorted(files_tot,key = numericalSort)
+    
+    
     tracer_extraction_path = os.path.join(tracer_extraction_folder_path, run_name)
-    tracers_extraction_imgs_envelope = np.load(os.path.join(tracer_extraction_path, 'tracer_extraction_image_envelope.npy'))
+    tracers_extraction_imgs_envelope = np.load(os.path.join(tracer_extraction_path, 'tracer_extraction_envelope.npy'))
     
     # REMOVE SMALL AND OBLONG OBJECTS
     compact_threshold=5
@@ -252,19 +270,31 @@ for run_name in run_names:
     mask_filt = clean_matrix(tracers_extraction_imgs_envelope, compact_threshold, min_size)
     
     mask_filt = np.where(tracers_extraction_imgs_envelope==0, np.nan, tracers_extraction_imgs_envelope)
+    
     # RESCALE IMAGE WITH VALUES FROM 0 TO 255
     mask_filt = np.where(mask_filt>0, 255,0)
     mask_filt = mask_filt.astype(np.uint8)
     imageio.imwrite(os.path.join(tracer_extraction_path, 'gmr_mask.png'), mask_filt)
     
-#%%
+
 # APPLY FILTERING MASK AND PERFORM THE SECOND FILTERING STEP
 tracer_ultimate_extraction_folder_path = os.path.join(tracer_extraction_folder_path, 'ultimate_extraction')
 if not os.path.exists(tracer_ultimate_extraction_folder_path):
     os.mkdir(tracer_ultimate_extraction_folder_path)
     
-    
+
 for run_name in run_names:
+    print(run_name, ' is running...')
+    
+    numbers = re.compile(r'(\d+)')
+    
+    tracer_ultimate_extraction_folder_path = os.path.join(tracer_extraction_folder_path, 'ultimate_extraction')
+    
+    # List input directory files and filter for files that end with .jpg
+    path_in = os.path.join(input_dir, 'cropped_images', run_name)
+    files_tot = sorted([f for f in os.listdir(path_in) if f.endswith('.jpg') and not f.startswith('.')])
+    files = sorted(files_tot,key = numericalSort)
+    
     tracer_extraction_ultimate_path = os.path.join(tracer_ultimate_extraction_folder_path, run_name)
     if not os.path.exists(tracer_extraction_ultimate_path):
         os.mkdir(tracer_extraction_ultimate_path)
@@ -282,6 +312,7 @@ for run_name in run_names:
     files = files[:-1]
     
     for file in files:
+        # print(file)
         
         # IMPORT THE FIRST STEP BAND EXTRACTION
         image_rmg = Image.open(os.path.join(tracer_extraction_path, str(t) + 's_gmr.png'))
