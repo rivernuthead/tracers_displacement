@@ -118,7 +118,6 @@ run_names = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', '
 # run_names = ['q05_1r3copy']
 # run_names = ['q05_1r12']
 
-2
 
 # Script parameters:
 run_mode = 1

@@ -31,7 +31,8 @@ Run mode:
 # run_names = ['q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
 # run_names = ['q05_1r1', 'q05_1r2', 'q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
 # run_names = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
-run_names = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
+# run_names = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
+run_names = ['q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
 # run_names = ['q05_1r4']
 
@@ -140,7 +141,7 @@ for run_name in run_names:
     array_mask = np.loadtxt(os.path.join(input_dir, 'array_mask.txt'))
     array_mask = np.where(array_mask != -999,1,np.nan)
     if run_name == 'q10_1r8' or run_name == 'q10_1r9':
-        array_mask = np.loadtxt(os.path.join(w_dir, 'array_mask_reduced.txt'))
+        array_mask = np.loadtxt(os.path.join(input_dir, 'array_mask_reduced.txt'))
         array_mask = np.where(array_mask != -999,1,np.nan)
     
     

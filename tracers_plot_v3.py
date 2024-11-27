@@ -9,11 +9,11 @@ Created on Wed Oct 26 14:13:38 2022
 import os
 os.environ["OMP_NUM_THREADS"] = '1'
 import numpy as np
-import shutil
+# import shutil
 import matplotlib.pyplot as plt
 import seaborn as sns
-import scipy
-import statistics
+# import scipy
+# import statistics
 from sklearn.mixture import GaussianMixture
 import pandas as pd
 
@@ -23,76 +23,70 @@ import warnings
 warnings.warn = warn
 
 
-'''
-Run mode:
-    run_mode == 1 : single run
-    run_mode == 2 : batch process
-'''
 
-# Script parameters:
-run_mode = 1
 n_bin = 22
 # Set working directory
-run = 'q05_1r2'
 w_dir = os.getcwd() # Set Python script location as w_dir
 
 # Survey pixel dimension
 px_x = 50 # [mm]
 px_y = 5 # [mm]
+
+
 # List all available runs, depending on run_mode
-runs =[]
-if run_mode==1:
-    runs = [run] # Comment to perform batch process over folder
-elif run_mode==2:
-    for f in sorted(os.listdir(os.path.join(w_dir, 'output_data', 'output_images'))):
-        path = os.path.join(os.path.join(w_dir, 'output_data', 'output_images'), f)
-        if os.path.isdir(path) and not(f.startswith('_')):
-            runs = np.append(runs, f)
-else:
-    pass
+# run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+# run_names = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
+# run_names = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
+
+run_names = ['q05_1r2']
 
 ###############################################################################
 # LOOP OVER RUNS
 ###############################################################################
-for run in runs:
-    path_in_tracers = os.path.join(w_dir, 'output_data', 'output_images', run)
-    path_in_DEM = os.path.join(w_dir, 'input_data','surveys',run[0:5])
-    path_in_DoD = os.path.join(w_dir, 'input_data','DoDs','DoD_'+run[0:5])
+for run_name in run_names:
+    path_in_tracers = os.path.join(w_dir, 'output_data','output_images', run_name)
+    path_in_DEM = os.path.join(w_dir, 'input_data', 'surveys',run_name[0:5])
+    path_in_DoD = os.path.join(w_dir, 'input_data', 'DoDs','DoD_'+run_name[0:5])
     # Create outputs script directory)
-    plot_dir = os.path.join(w_dir, 'output_data', 'analysis_plot', run)
-    plot_dir_appdisapp = os.path.join(w_dir, 'output_data', 'appdisapp', run)
+    if not os.path.exists(os.path.join(w_dir, 'output_data', 'analysis_plot')):
+        os.mkdir(os.path.join(w_dir, 'output_data', 'analysis_plot'))
+    if not os.path.exists(os.path.join(w_dir, 'output_data', 'appdisapp')):
+        os.mkdir(os.path.join(w_dir, 'output_data', 'appdisapp'))
+    plot_dir = os.path.join(w_dir, 'output_data', 'analysis_plot', run_name)
+    plot_dir_appdisapp = os.path.join(w_dir, 'output_data', 'appdisapp', run_name)
    
     if not os.path.exists(plot_dir):
         os.mkdir(plot_dir) 
  
     if not os.path.exists(plot_dir_appdisapp):
         os.mkdir(plot_dir_appdisapp) 
+
         
-    run_param = np.loadtxt(os.path.join(w_dir, 'input_data', 'run_param_'+run[0:3]+'.txt'), skiprows=1, delimiter=',')
+    run_param = np.loadtxt(os.path.join(w_dir, 'input_data', 'run_param_'+run_name[0:3]+'.txt'), skiprows=1, delimiter=',')
         
-    tracers = np.load(path_in_tracers + '/alltracers_'+ run +'.npy',allow_pickle=True)
-    tracers_appeared = np.load(path_in_tracers + '/tracers_appeared_'+ run +'.npy',allow_pickle=True)
-    tracers_disappeared = np.load(path_in_tracers + '/tracers_disappeared_'+ run +'.npy',allow_pickle=True)
-    tracers_reduced = np.load(path_in_tracers + '/tracers_reduced_'+ run +'.npy',allow_pickle=True)
-    tracers_appeared_reduced = np.load(path_in_tracers + '/tracers_appeared_reduced_'+ run +'.npy',allow_pickle=True)
-    tracers_disappeared_reduced = np.load(path_in_tracers + '/tracers_disappeared_reduced_'+ run +'.npy',allow_pickle=True) 
-    tracers_appeared_stopped = np.load(path_in_tracers + '/tracers_appeared_reduced_stopped_'+ run +'.npy',allow_pickle=True)
-    tracers_disappeared_stopped = np.load(path_in_tracers + '/tracers_disappeared_reduced_stopped_'+ run +'.npy',allow_pickle=True) 
+    tracers = np.load(path_in_tracers + '/alltracers_'+ run_name +'.npy',allow_pickle=True)
+    tracers_appeared = np.load(path_in_tracers + '/tracers_appeared_'+ run_name +'.npy',allow_pickle=True)
+    tracers_disappeared = np.load(path_in_tracers + '/tracers_disappeared_'+ run_name +'.npy',allow_pickle=True)
+    tracers_reduced = np.load(path_in_tracers + '/tracers_reduced_'+ run_name +'.npy',allow_pickle=True)
+    tracers_appeared_reduced = np.load(path_in_tracers + '/tracers_appeared_reduced_'+ run_name +'.npy',allow_pickle=True)
+    tracers_disappeared_reduced = np.load(path_in_tracers + '/tracers_disappeared_reduced_'+ run_name +'.npy',allow_pickle=True) 
+    tracers_appeared_stopped = np.load(path_in_tracers + '/tracers_appeared_reduced_stopped_'+ run_name +'.npy',allow_pickle=True)
+    tracers_disappeared_stopped = np.load(path_in_tracers + '/tracers_disappeared_reduced_stopped_'+ run_name +'.npy',allow_pickle=True) 
     
     
-    nDEM = int(run_param[int(run[6:])-1,2])
-    nDoD1 = int(run_param[int(run[6:])-1,3])
-    nDoD2 = int(run_param[int(run[6:])-1,4])
-    start = int(run_param[int(run[6:])-1,6])
-    yrami = int(run_param[int(run[6:])-1,7])
-    nmode1 = int(run_param[int(run[6:])-1,8])
-    nmode2 = int(run_param[int(run[6:])-1,9])
-    end = int(run_param[int(run[6:])-1,11])
+    nDEM = int(run_param[int(run_name[6:])-1,2])
+    nDoD1 = int(run_param[int(run_name[6:])-1,3])
+    nDoD2 = int(run_param[int(run_name[6:])-1,4])
+    start = int(run_param[int(run_name[6:])-1,6])
+    yrami = int(run_param[int(run_name[6:])-1,7])
+    nmode1 = int(run_param[int(run_name[6:])-1,8])
+    nmode2 = int(run_param[int(run_name[6:])-1,9])
+    end = int(run_param[int(run_name[6:])-1,11])
     
-    DEM = np.loadtxt(os.path.join(path_in_DEM, 'matrix_bed_norm_'+run[0:3]+'_1s'+ str(nDEM) +'.txt'),skiprows=8)
+    DEM = np.loadtxt(os.path.join(path_in_DEM, 'matrix_bed_norm_'+run_name[0:3]+'_1s'+ str(nDEM) +'.txt'),skiprows=8)
     DoD = np.loadtxt(os.path.join(path_in_DoD, 'DoD_'+ str(nDoD1) + '-'+ str(nDoD2) + '_filt_fill.txt'))
 
-    frame_position = run_param[int(run[6:])-1,1]
+    frame_position = run_param[int(run_name[6:])-1,1]
     frame_position += 0.44
     scale_to_mm = 0.0016*frame_position + 0.4827
     
@@ -156,8 +150,9 @@ for run in runs:
                 sns.histplot(data=(df_tracers_ramo2.x), ax=ax[2], binwidth=100,binrange=(0,2200),stat = 'density')
             ax[2].set_title('After GMM ramo 2', fontsize=16)
             ax[2].set(xlabel='Distance [mm]')
-            plt.savefig(os.path.join(plot_dir, run +' '+ str(float("{:.2f}".format(i*4/60))) +'min_gmm.png'), dpi=300)
-            plt.show()         
+            plt.savefig(os.path.join(plot_dir, run_name +' '+ str(float("{:.2f}".format(i*4/60))) +'min_gmm.png'), dpi=300)
+            plt.show()
+            
         if len(df_tracers)>15 and nmode1 > 1 and yrami == 0:
             gmm = GaussianMixture(n_components=nmode1, tol = 1e-1, warm_start=(False), init_params='kmeans',covariance_type='full')
             gmm.fit(df_tracers.x.values.reshape(-1, 1))
@@ -213,20 +208,20 @@ for run in runs:
                 sns.histplot(data=(df_tracers.dist1,df_tracers.dist2,df_tracers.dist3),ax=ax[1], binwidth=50, binrange=(0,2200),stat = 'density', common_norm = True)
             ax[1].set_title('After GMM', fontsize=16)
             ax[1].set(xlabel='Distance [mm]')
-            plt.savefig(os.path.join(plot_dir, run +' '+ str(float("{:.2f}".format(i*4/60))) +'_tiedcv_min_gmm.png'), dpi=300)
+            plt.savefig(os.path.join(plot_dir, run_name +' '+ str(float("{:.2f}".format(i*4/60))) +'_tiedcv_min_gmm.png'), dpi=300)
             plt.show() 
             
                 
         sns.histplot(data=df_tracers.z, binwidth=3,binrange=(-15,15),stat = 'density')
         plt.xlabel('Elevation [mm]')
         plt.title('Elevation at '+str(float("{:.2f}".format(i*4/60))) +' minutes', fontsize=16)
-        plt.savefig(os.path.join(plot_dir, run +' '+ str(float("{:.2f}".format(i*4/60))) +'min_z_distribution.png'), dpi=300)
+        plt.savefig(os.path.join(plot_dir, run_name +' '+ str(float("{:.2f}".format(i*4/60))) +'min_z_distribution.png'), dpi=300)
         plt.show()
         
         sns.histplot(data=df_tracers.z_DoD, binwidth=3,binrange=(-15,15),stat = 'density')
         plt.xlabel('Scour and deposition [mm]')
         plt.title('Scour and deposition distribution at '+str(float("{:.2f}".format(i*4/60))) +' minutes', fontsize=16)
-        plt.savefig(os.path.join(plot_dir, run +' '+ str(float("{:.2f}".format(i*4/60))) +'min_zDoD_distribution.png'), dpi=300)
+        plt.savefig(os.path.join(plot_dir, run_name +' '+ str(float("{:.2f}".format(i*4/60))) +'min_zDoD_distribution.png'), dpi=300)
         plt.show()
     
     all_df_tracers = pd.DataFrame()
@@ -275,12 +270,73 @@ for run in runs:
         #         f.suptitle('Appeared tracers at '+str(float("{:.2f}".format(i*4/60))) +' minutes', fontsize=16,color = 'r')
         #     else:
         #         f.suptitle('Appeared tracers at '+str(float("{:.2f}".format(i*4/60))) +' minutes', fontsize=16)
-        #     plt.savefig(os.path.join(plot_dir_appdisapp, run +' '+ str(float("{:.2f}".format(i*4))) +'density_s_xappdisapp_distribution.png'), dpi=300)
+        #     plt.savefig(os.path.join(plot_dir_appdisapp, run_name +' '+ str(float("{:.2f}".format(i*4))) +'density_s_xappdisapp_distribution.png'), dpi=300)
         #     plt.show()
             
+
+
+
+
+
+#%%
+for run_name in run_names:
+    path_in_tracers = os.path.join(w_dir, 'output_data','output_images', run_name)
+    path_in_DEM = os.path.join(w_dir, 'input_data', 'surveys',run_name[0:5])
+    path_in_DoD = os.path.join(w_dir, 'input_data', 'DoDs','DoD_'+run_name[0:5])
+    # Create outputs script directory)
+    if not os.path.exists(os.path.join(w_dir, 'output_data', 'analysis_plot')):
+        os.mkdir(os.path.join(w_dir, 'output_data', 'analysis_plot'))
+    if not os.path.exists(os.path.join(w_dir, 'output_data', 'appdisapp')):
+        os.mkdir(os.path.join(w_dir, 'output_data', 'appdisapp'))
+    plot_dir = os.path.join(w_dir, 'output_data', 'analysis_plot', run_name)
+    plot_dir_appdisapp = os.path.join(w_dir, 'output_data', 'appdisapp', run_name)
+   
+    if not os.path.exists(plot_dir):
+        os.mkdir(plot_dir) 
+ 
+    if not os.path.exists(plot_dir_appdisapp):
+        os.mkdir(plot_dir_appdisapp) 
+
         
-    for i in range(start,len(tracers_reduced),1):
-        print(i)
+    run_param = np.loadtxt(os.path.join(w_dir, 'input_data', 'run_param_'+run_name[0:3]+'.txt'), skiprows=1, delimiter=',')
+        
+    tracers = np.load(path_in_tracers + '/alltracers_'+ run_name +'.npy',allow_pickle=True)
+    tracers_appeared = np.load(path_in_tracers + '/tracers_appeared_'+ run_name +'.npy',allow_pickle=True)
+    tracers_disappeared = np.load(path_in_tracers + '/tracers_disappeared_'+ run_name +'.npy',allow_pickle=True)
+    tracers_reduced = np.load(path_in_tracers + '/tracers_reduced_'+ run_name +'.npy',allow_pickle=True)
+    tracers_appeared_reduced = np.load(path_in_tracers + '/tracers_appeared_reduced_'+ run_name +'.npy',allow_pickle=True)
+    tracers_disappeared_reduced = np.load(path_in_tracers + '/tracers_disappeared_reduced_'+ run_name +'.npy',allow_pickle=True) 
+    tracers_appeared_stopped = np.load(path_in_tracers + '/tracers_appeared_reduced_stopped_'+ run_name +'.npy',allow_pickle=True)
+    tracers_disappeared_stopped = np.load(path_in_tracers + '/tracers_disappeared_reduced_stopped_'+ run_name +'.npy',allow_pickle=True) 
+    
+    
+    nDEM = int(run_param[int(run_name[6:])-1,2])
+    nDoD1 = int(run_param[int(run_name[6:])-1,3])
+    nDoD2 = int(run_param[int(run_name[6:])-1,4])
+    start = int(run_param[int(run_name[6:])-1,6])
+    yrami = int(run_param[int(run_name[6:])-1,7])
+    nmode1 = int(run_param[int(run_name[6:])-1,8])
+    nmode2 = int(run_param[int(run_name[6:])-1,9])
+    end = int(run_param[int(run_name[6:])-1,11])
+    
+    DEM = np.loadtxt(os.path.join(path_in_DEM, 'matrix_bed_norm_'+run_name[0:3]+'_1s'+ str(nDEM) +'.txt'),skiprows=8)
+    DoD = np.loadtxt(os.path.join(path_in_DoD, 'DoD_'+ str(nDoD1) + '-'+ str(nDoD2) + '_filt_fill.txt'))
+
+    frame_position = run_param[int(run_name[6:])-1,1]
+    frame_position += 0.44
+    scale_to_mm = 0.0016*frame_position + 0.4827
+    
+    x_center = frame_position*1000 + 1100
+    x_0 = x_center - 4288/2*scale_to_mm
+    
+    y_center = 51 + 622.5*scale_to_mm #51 è la distanza in mm dallo scan laser alla sponda interna
+    y_0 = y_center - (2190-750)/2*scale_to_mm
+    
+    L = 4288*scale_to_mm # photo length in meters [m]
+    
+    i = 0
+    
+    for i in range(start,len(tracers_reduced)-1,1):
         dict_tracers_app = {'x_app':tracers_appeared_reduced[i,:,0],'z_DoD_app':tracers_appeared_reduced[i,:,3]}
         df_tracers_app = pd.DataFrame(dict_tracers_app)
         df_tracers_app = df_tracers_app.dropna()
@@ -297,7 +353,7 @@ for run in runs:
         df_tracers_dis_stop = pd.DataFrame(dict_tracers_dis_stop)
         df_tracers_dis_stop = df_tracers_dis_stop.dropna()
         all_df_tracers_dis_stop = pd.concat([all_df_tracers_dis_stop, df_tracers_dis_stop])
-        if i == end:
+        if i == end-2:
             df_tracers_end = df_tracers
         # if len(df_tracers_app_stop)>0 and len(df_tracers_dis_stop)>0:
         #     f, ax = plt.subplots(nrows=1, ncols=2, figsize=(14, 6),sharey=True)
@@ -361,7 +417,7 @@ for run in runs:
             sns.histplot(x=(envelope_tracers_app.x_app_stop), binwidth=100,binrange=(0,2200),fill = True,common_norm = False,element = "step",discrete = False,stat ="percent")
             plt.xlabel('Distance [mm]')
             plt.title('Envelope of appeared tracers at '+str(float("{:.2f}".format(i*4/60))) +' minutes vs the total envelope', fontsize=16)
-            plt.savefig(os.path.join(plot_dir, run +' '+ str(float("{:.2f}".format(i*4/60))) +'envelope of appeared vs totale envelope.png'), dpi=300)
+            plt.savefig(os.path.join(plot_dir, run_name +' '+ str(float("{:.2f}".format(i*4/60))) +'envelope of appeared vs totale envelope.png'), dpi=300)
             plt.show()
             envelope_tracers_app = pd.DataFrame()
                     
@@ -376,8 +432,8 @@ for run in runs:
     
     array_mask = np.loadtxt(os.path.join(w_dir, 'input_data', 'array_mask.txt'))
     array_mask = np.where(array_mask != -999,1,np.nan)
-    if run == 'q10_1r8' or run == 'q10_1r9':
-        array_mask = np.loadtxt(os.path.join(w_dir, 'array_mask_reduced.txt'))
+    if run_name == 'q10_1r8' or run_name == 'q10_1r9':
+        array_mask = np.loadtxt(os.path.join(w_dir, 'input_data', 'array_mask_reduced.txt'))
         array_mask = np.where(array_mask != -999,1,np.nan)
     DEM = DEM*array_mask
     
@@ -403,8 +459,8 @@ for run in runs:
     plt.yticks(ticks=y_ticks, labels=y_labels)
     plt.xlabel('Length [m]')
     plt.ylabel('Width [m]')
-    plt.savefig(os.path.join(plot_dir, run +'_overlap_DoD.png'), dpi=1600)
-    plt.savefig(os.path.join(plot_dir, run +'_overlap_DoD.pdf'))
+    plt.savefig(os.path.join(plot_dir, run_name +'_overlap_DoD.png'), dpi=1600)
+    plt.savefig(os.path.join(plot_dir, run_name +'_overlap_DoD.pdf'))
     plt.show()
     
     
@@ -417,7 +473,7 @@ for run in runs:
     plt.yticks(ticks=y_ticks, labels=y_labels)
     plt.xlabel('Length [m]')
     plt.ylabel('Width [m]')
-    plt.savefig(os.path.join(plot_dir, run +'_overlap_DEM.png'), dpi=1600)
-    plt.savefig(os.path.join(plot_dir, run +'_overlap_DEM.pdf'))
+    plt.savefig(os.path.join(plot_dir, run_name +'_overlap_DEM.png'), dpi=1600)
+    plt.savefig(os.path.join(plot_dir, run_name +'_overlap_DEM.pdf'))
     plt.show()
       

@@ -22,19 +22,20 @@ Run mode:
 
 # Script parameters:
 w_dir = os.getcwd() # Set Python script location as w_dir
-plot_dir = os.path.join(w_dir, 'distances_plot')
+plot_dir = os.path.join(w_dir, 'output_data', 'distances', 'distances_plot')
+if not os.path.exists(plot_dir):
+    os.mkdir(plot_dir)
 
-report_distances = pd.read_csv(os.path.join(w_dir, 'report_distances.txt'))
-report_DoDdistances = pd.read_csv(os.path.join(w_dir, 'DoDdistanze.txt'))
+report_distances = pd.read_csv(os.path.join(w_dir,'output_data', 'distances', 'report', 'report_distances.txt'))
 
 report_distances['percdeposito']=report_distances['percdeposito']*100
 report_distances['velocita1']=report_distances['velocita1']*1000
 report_distances['velocita2']=report_distances['velocita2']*1000
 report_distances['velocita3']=report_distances['velocita3']*1000
 
-path_in_DoD_q05 = os.path.join(w_dir,'DoDs','DoD_q05_1')
-path_in_DoD_q07 = os.path.join(w_dir,'DoDs','DoD_q07_1')
-path_in_DoD_q10 = os.path.join(w_dir,'DoDs','DoD_q10_1')
+path_in_DoD_q05 = os.path.join(w_dir, 'input_data','DoDs','DoD_q05_1')
+path_in_DoD_q07 = os.path.join(w_dir, 'input_data','DoDs','DoD_q07_1')
+path_in_DoD_q10 = os.path.join(w_dir, 'input_data','DoDs','DoD_q10_1')
     
 DoD_q05_1 = np.loadtxt(os.path.join(path_in_DoD_q05, 'DoD_1-0_filt_fill.txt'))
 DoD_q05_2 = np.loadtxt(os.path.join(path_in_DoD_q05, 'DoD_2-1_filt_fill.txt'))
@@ -166,7 +167,9 @@ report_port = pd.concat((report_distances_q05,report_distances_q07,report_distan
 report_port['portatas_comp'] = report_port['portatas_comp']*report_port['percrun']
 report_port['portatas_dist'] = report_port['portatas_dist']*report_port['percrun']
 
-
+# =============================================================================
+# 
+# =============================================================================
 sns.set_style("whitegrid")
 sns.set_context('talk')
 fig, ax = plt.subplots()
@@ -185,23 +188,56 @@ plt.tight_layout()
 plt.savefig(os.path.join(plot_dir, 'portatas_dist.png'), dpi=300,bbox_inches='tight')
 plt.show()
 
+
+# =============================================================================
+# 
+# =============================================================================
+
+
 sns.set_style("whitegrid")
 fig, ax = plt.subplots()
-sns.boxplot(data = report_port, x="portata", y="portatas_comp",saturation=0.9,medianprops={"color": "firebrick"},palette='Set1_r')
-sns.despine(left = True, bottom = True)
-plt.axhline(0.78,0.7,0.97,color='blue',ls='--',lw = 2)
-ax.add_patch(mpatches.Rectangle((1.59, 0.78-0.3),0.82, 0.6,facecolor = 'lightskyblue',lw=3,alpha = 0.3,hatch = '/',edgecolor ='darkblue' ))  
-plt.axhline(0.33,0.37,0.635,color='blue',ls='--',lw = 2)
-ax.add_patch(mpatches.Rectangle((0.59, 0.33-0.18),0.82, 0.36,facecolor = 'lightskyblue',lw=3,alpha = 0.3,hatch = '/',edgecolor ='darkblue'))  
-plt.axhline(0.2,0.035,0.3,color='blue',ls='--',lw = 2)
-ax.add_patch(mpatches.Rectangle((-0.41, 0.2-0.12),0.82, 0.24,facecolor = 'lightskyblue',lw=3,alpha = 0.3,hatch = '/',edgecolor ='darkblue'))  
-plt.ylim(0,1.2)
+# Ensure data is valid
+assert "portata" in report_port.columns, "Column 'portata' not found in report_port."
+assert "portatas_comp" in report_port.columns, "Column 'portatas_comp' not found in report_port."
+
+sns.boxplot(
+    data=report_port,
+    x="portata",
+    y="portatas_comp",
+    saturation=0.9,
+    medianprops={"color": "firebrick"},  # Ensure medianprops is properly defined
+    palette='Set1_r'
+)
+
+
+print(report_port.head())
+print(report_port.dtypes)
+
+sns.despine(left=True, bottom=True)
+
+# Add horizontal lines and rectangles
+plt.axhline(0.78, 0.7, 0.97, color='blue', ls='--', lw=2)
+ax.add_patch(mpatches.Rectangle((1.59, 0.78 - 0.3), 0.82, 0.6, facecolor='lightskyblue', lw=3, alpha=0.3, hatch='/', edgecolor='darkblue'))
+plt.axhline(0.33, 0.37, 0.635, color='blue', ls='--', lw=2)
+ax.add_patch(mpatches.Rectangle((0.59, 0.33 - 0.18), 0.82, 0.36, facecolor='lightskyblue', lw=3, alpha=0.3, hatch='/', edgecolor='darkblue'))
+plt.axhline(0.2, 0.035, 0.3, color='blue', ls='--', lw=2)
+ax.add_patch(mpatches.Rectangle((-0.41, 0.2 - 0.12), 0.82, 0.24, facecolor='lightskyblue', lw=3, alpha=0.3, hatch='/', edgecolor='darkblue'))
+
+# Customize labels and limits
+plt.ylim(0, 1.2)
 plt.ylabel("Portata solida [g/s]")
 plt.xlabel("Portata [l/s]")
 plt.tight_layout()
-plt.savefig(os.path.join(plot_dir, 'portatas_comp.png'), dpi=300,bbox_inches='tight')
+
+# Save and show plot
+plt.savefig(os.path.join(plot_dir, 'portatas_comp.png'), dpi=300, bbox_inches='tight')
 plt.show()
 
+
+
+# =============================================================================
+# 
+# =============================================================================
 sns.set_style("whitegrid")
 sns.boxplot(data = report_port, x="portata", y="distanza1",saturation=0.9,medianprops={"color": "firebrick"},palette='pastel')
 sns.despine(left = True, bottom = True)
@@ -211,6 +247,10 @@ plt.tight_layout()
 plt.savefig(os.path.join(plot_dir, 'metodo1_beta.png'), dpi=300,bbox_inches='tight')
 plt.show()
 
+
+# =============================================================================
+# 
+# =============================================================================
 sns.set_style("whitegrid")
 sns.boxplot(data = report_port, x="portata", y="distanza3",saturation=0.9,medianprops={"color": "firebrick"},palette='pastel')
 sns.despine(left = True, bottom = True)
@@ -220,29 +260,29 @@ plt.tight_layout()
 plt.savefig(os.path.join(plot_dir, 'metodo3_beta.png'), dpi=300,bbox_inches='tight')
 plt.show()
 
-report_DoDdistances = pd.read_csv(os.path.join(w_dir, 'DoDdistanze.txt'))
-report_DoDdistances_q05 = report_DoDdistances[report_DoDdistances.portata == 0.5]
-report_DoDdistances_q07 = report_DoDdistances[report_DoDdistances.portata == 0.7]
-report_DoDdistances_q10 = report_DoDdistances[report_DoDdistances.portata == 1.0]
+# report_DoDdistances = pd.read_csv(os.path.join(w_dir, 'DoDdistanze.txt'))
+# report_DoDdistances_q05 = report_DoDdistances[report_DoDdistances.portata == 0.5]
+# report_DoDdistances_q07 = report_DoDdistances[report_DoDdistances.portata == 0.7]
+# report_DoDdistances_q10 = report_DoDdistances[report_DoDdistances.portata == 1.0]
 
-report_DoDdistances_q05['portatas']=report_DoDdistances_q05['distanza']/1800*0.63*V_e_q05*(2.65/1000)/13900
-report_DoDdistances_q07['portatas']=report_DoDdistances_q07['distanza']/1800*0.63*V_e_q07*(2.65/1000)/13900
-report_DoDdistances_q10['portatas']=report_DoDdistances_q10['distanza']/1800*0.63*V_e_q10*(2.65/1000)/11800
-report_DoDport = pd.concat((report_DoDdistances_q05,report_DoDdistances_q07,report_DoDdistances_q10))
+# report_DoDdistances_q05['portatas']=report_DoDdistances_q05['distanza']/1800*0.63*V_e_q05*(2.65/1000)/13900
+# report_DoDdistances_q07['portatas']=report_DoDdistances_q07['distanza']/1800*0.63*V_e_q07*(2.65/1000)/13900
+# report_DoDdistances_q10['portatas']=report_DoDdistances_q10['distanza']/1800*0.63*V_e_q10*(2.65/1000)/11800
+# report_DoDport = pd.concat((report_DoDdistances_q05,report_DoDdistances_q07,report_DoDdistances_q10))
 
-sns.set_style("whitegrid")
-fig, ax = plt.subplots()
-sns.boxplot(data = report_DoDport, x="portata", y="portatas",saturation=0.9,medianprops={"color": "firebrick"},palette='Set1_r')
-sns.despine(left = True, bottom = True)
-plt.axhline(0.78,0.7,0.97,color='blue',ls='--',lw = 2)
-ax.add_patch(mpatches.Rectangle((1.59, 0.78-0.3),0.82, 0.6,facecolor = 'lightskyblue',lw=3,alpha = 0.3,hatch = '/',edgecolor ='darkblue' ))  
-plt.axhline(0.33,0.37,0.635,color='blue',ls='--',lw = 2)
-ax.add_patch(mpatches.Rectangle((0.59, 0.33-0.18),0.82, 0.36,facecolor = 'lightskyblue',lw=3,alpha = 0.3,hatch = '/',edgecolor ='darkblue'))  
-plt.axhline(0.2,0.035,0.3,color='blue',ls='--',lw = 2)
-ax.add_patch(mpatches.Rectangle((-0.41, 0.2-0.12),0.82, 0.24,facecolor = 'lightskyblue',lw=3,alpha = 0.3,hatch = '/',edgecolor ='darkblue'))  
-plt.ylim(0,1.2)
-plt.ylabel("Portata solida [g/s]")
-plt.xlabel("Portata [l/s]")
-plt.tight_layout()
-plt.savefig(os.path.join(plot_dir, 'portatas_DoD.png'), dpi=300,bbox_inches='tight')
-plt.show()
+# sns.set_style("whitegrid")
+# fig, ax = plt.subplots()
+# sns.boxplot(data = report_DoDport, x="portata", y="portatas",saturation=0.9,medianprops={"color": "firebrick"},palette='Set1_r')
+# sns.despine(left = True, bottom = True)
+# plt.axhline(0.78,0.7,0.97,color='blue',ls='--',lw = 2)
+# ax.add_patch(mpatches.Rectangle((1.59, 0.78-0.3),0.82, 0.6,facecolor = 'lightskyblue',lw=3,alpha = 0.3,hatch = '/',edgecolor ='darkblue' ))  
+# plt.axhline(0.33,0.37,0.635,color='blue',ls='--',lw = 2)
+# ax.add_patch(mpatches.Rectangle((0.59, 0.33-0.18),0.82, 0.36,facecolor = 'lightskyblue',lw=3,alpha = 0.3,hatch = '/',edgecolor ='darkblue'))  
+# plt.axhline(0.2,0.035,0.3,color='blue',ls='--',lw = 2)
+# ax.add_patch(mpatches.Rectangle((-0.41, 0.2-0.12),0.82, 0.24,facecolor = 'lightskyblue',lw=3,alpha = 0.3,hatch = '/',edgecolor ='darkblue'))  
+# plt.ylim(0,1.2)
+# plt.ylabel("Portata solida [g/s]")
+# plt.xlabel("Portata [l/s]")
+# plt.tight_layout()
+# plt.savefig(os.path.join(plot_dir, 'portatas_DoD.png'), dpi=300,bbox_inches='tight')
+# plt.show()

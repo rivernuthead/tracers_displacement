@@ -9,10 +9,10 @@ Created on Wed Oct 26 14:13:38 2022
 import os
 os.environ["OMP_NUM_THREADS"] = '1'
 import numpy as np
-import shutil
+# import shutil
 import matplotlib.pyplot as plt
-import seaborn as sns
-import scipy
+# import seaborn as sns
+# import scipy
 from scipy.ndimage import uniform_filter1d
 import pandas as pd
 from sklearn.mixture import GaussianMixture
@@ -21,18 +21,23 @@ def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
-'''
-Run mode:
-    run_mode == 1 : single run
-    run_mode == 2 : batch process
-'''
+
+w_dir = os.getcwd() # Set Python script location as w_dir
 
 # Script parameters:
-run_mode = 2
 clean_size = 5
-# Set working directory
-runs = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
-w_dir = os.getcwd() # Set Python script location as w_dir
+
+
+# run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12']
+# run_names = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
+# run_names = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
+
+'''
+TO PRINT THE report_distances.txt FILE RUN ALL THE run_name TOGETHER
+'''
+run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12',
+             'q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12',
+             'q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
 
 
@@ -40,10 +45,10 @@ report_distances = np.empty((0,12)) # distance between modes all distribution fr
 ###############################################################################
 # LOOP OVER RUNS
 ###############################################################################
-for run in runs:
-    print(run, ' is running...')
+for run_name in run_names:
+    print(run_name, ' is running...')
     
-    path_in_tracers = os.path.join(w_dir, 'output_data', 'output_images', run)
+    path_in_tracers = os.path.join(w_dir, 'output_data', 'output_images', run_name)
     
     if not os.path.exists(os.path.join(w_dir,'output_data', 'distances')):
         os.mkdir(os.path.join(w_dir,'output_data', 'distances'))
@@ -61,30 +66,30 @@ for run in runs:
         os.mkdir(os.path.join(w_dir, 'output_data', 'output_tracers_analysis'))
                  
                  
-    path_out = os.path.join(w_dir, 'output_data', 'output_tracers_analysis', run[0:5])
+    path_out = os.path.join(w_dir, 'output_data', 'output_tracers_analysis', run_name[0:5])
     if not os.path.exists(path_out):
         os.mkdir(path_out)
      
-    run_param = np.loadtxt(os.path.join(w_dir, 'input_data', 'run_param_'+run[0:3]+'.txt'), skiprows=1, delimiter=',')
+    run_param = np.loadtxt(os.path.join(w_dir, 'input_data', 'run_param_'+run_name[0:3]+'.txt'), skiprows=1, delimiter=',')
     
-    tracers = np.load(path_in_tracers + '/alltracers_'+ run +'.npy',allow_pickle=True)
-    tracers_appeared = np.load(path_in_tracers + '/tracers_appeared_'+ run +'.npy',allow_pickle=True)
-    tracers_disappeared = np.load(path_in_tracers + '/tracers_disappeared_'+ run +'.npy',allow_pickle=True)
+    tracers = np.load(path_in_tracers + '/alltracers_'+ run_name +'.npy',allow_pickle=True)
+    tracers_appeared = np.load(path_in_tracers + '/tracers_appeared_'+ run_name +'.npy',allow_pickle=True)
+    tracers_disappeared = np.load(path_in_tracers + '/tracers_disappeared_'+ run_name +'.npy',allow_pickle=True)
     
-    tracers_reduced = np.load(path_in_tracers + '/tracers_reduced_'+ run +'.npy',allow_pickle=True)
-    tracers_appeared_reduced = np.load(path_in_tracers + '/tracers_appeared_reduced_'+ run +'.npy',allow_pickle=True)
-    tracers_disappeared_reduced = np.load(path_in_tracers + '/tracers_disappeared_reduced_'+ run +'.npy',allow_pickle=True)
+    tracers_reduced = np.load(path_in_tracers + '/tracers_reduced_'+ run_name +'.npy',allow_pickle=True)
+    tracers_appeared_reduced = np.load(path_in_tracers + '/tracers_appeared_reduced_'+ run_name +'.npy',allow_pickle=True)
+    tracers_disappeared_reduced = np.load(path_in_tracers + '/tracers_disappeared_reduced_'+ run_name +'.npy',allow_pickle=True)
     
-    tracers_appeared_stopped = np.load(path_in_tracers + '/tracers_appeared_reduced_stopped_'+ run +'.npy',allow_pickle=True)
-    tracers_disappeared_stopped = np.load(path_in_tracers + '/tracers_disappeared_reduced_stopped_'+ run +'.npy',allow_pickle=True) 
+    tracers_appeared_stopped = np.load(path_in_tracers + '/tracers_appeared_reduced_stopped_'+ run_name +'.npy',allow_pickle=True)
+    tracers_disappeared_stopped = np.load(path_in_tracers + '/tracers_disappeared_reduced_stopped_'+ run_name +'.npy',allow_pickle=True) 
     
     
-    start = int(run_param[int(run[6:])-1,6])
-    yrami = int(run_param[int(run[6:])-1,7])
-    nmode1 = int(run_param[int(run[6:])-1,8])
-    nmode2 = int(run_param[int(run[6:])-1,9])
-    skip = int(run_param[int(run[6:])-1,10])
-    end = int(run_param[int(run[6:])-1,11])
+    start = int(run_param[int(run_name[6:])-1,6])
+    yrami = int(run_param[int(run_name[6:])-1,7])
+    nmode1 = int(run_param[int(run_name[6:])-1,8])
+    nmode2 = int(run_param[int(run_name[6:])-1,9])
+    skip = int(run_param[int(run_name[6:])-1,10])
+    end = int(run_param[int(run_name[6:])-1,11])
     
     time = []
     for i in range(0,len(tracers_reduced),1):    
@@ -145,7 +150,9 @@ for run in runs:
     
     
     
-    np.savetxt(os.path.join(path_out,  run +'_report_tracers.txt'), report_tracers, fmt='%.2f', delimiter=',', header = 'ntracc, ntracc ramo2, x media [mm], x media ramo2 [mm], ntracc erosione [%], ntracc erosione ramo 2 [%], n tracc deposito [%], n tracc deposito ramo 2 [%]')    
+    np.savetxt(os.path.join(path_out,  run_name +'_report_tracers.txt'), report_tracers, fmt='%.2f', delimiter=',', header = 'ntracc, ntracc ramo2, x media [mm], x media ramo2 [mm], ntracc erosione [%], ntracc erosione ramo 2 [%], n tracc deposito [%], n tracc deposito ramo 2 [%]')    
+    
+    
     ###################################################################################
     # Distance method 1 # distance between modes all distribution from start to end
     ###################################################################################
@@ -275,7 +282,7 @@ for run in runs:
     cleaned_distanza_two_modes = uniform_filter1d(report_modes[:,12],size = clean_size)
     cleaned_distanza_two_modes_ramo2 = uniform_filter1d(report_modes[:,13],size = clean_size)
     
-    np.savetxt(os.path.join(path_out,  run +'_report_modes.txt'), report_modes, fmt='%.2f', delimiter=',', header = 'moda1 [mm], moda2 [mm], moda 3 [mm], ntracc1 [%],ntracc2 [%],ntracc3 [%],moda1 ramo2 [mm], moda2 ramo2 [mm], ntracc1 ramo2 [%],ntracc2 [%],distanza [mm], distanza ramo 2 [mm],distanza bimodali [mm],distanza bimodali ramo2 [mm]')    
+    np.savetxt(os.path.join(path_out,  run_name +'_report_modes.txt'), report_modes, fmt='%.2f', delimiter=',', header = 'moda1 [mm], moda2 [mm], moda 3 [mm], ntracc1 [%],ntracc2 [%],ntracc3 [%],moda1 ramo2 [mm], moda2 ramo2 [mm], ntracc1 ramo2 [%],ntracc2 [%],distanza [mm], distanza ramo 2 [mm],distanza bimodali [mm],distanza bimodali ramo2 [mm]')    
     distance1 = cleaned_distanza[-1]
     velocity1 = distance1/((end-start)*4)
     distance1ramo2 = cleaned_distanza_ramo2[-1]
@@ -295,7 +302,7 @@ for run in runs:
        moda2_ramo2 = np.median(cleaned_moda2_ramo2)
     
     fig, axs = plt.subplots(5,sharex=True,figsize = (16.5,11.7), tight_layout=True)
-    fig.suptitle('Traccianti metodo 1 '+run)
+    fig.suptitle('Traccianti metodo 1 '+run_name)
     axs[0].set_title('Mode',fontsize='large',loc='left')
     axs[0].axhline(media,color = 'k',ls='--')
     axs[0].plot(time[start:end],cleaned_mean[start:end],'k',label = 'Media')
@@ -337,12 +344,12 @@ for run in runs:
     axs[4].set_ylim(0)
     fig.tight_layout()
     
-    plt.savefig(os.path.join(path_out, run +'_tracers_in_time_method1.png'), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(path_out, run_name +'_tracers_in_time_method1.png'), dpi=300, bbox_inches='tight')
     
     
     if yrami != 0:
         fig, axs = plt.subplots(5,sharex=True,figsize = (16.5,11.7), tight_layout=True)
-        fig.suptitle('Traccianti ramo2 metodo 2 '+run)
+        fig.suptitle('Traccianti ramo2 metodo 2 '+run_name)
         axs[0].set_title('Mode',fontsize='large',loc='left')
         axs[0].axhline(media_ramo2,color ='k',ls='--')
         axs[0].plot(time[start:end],cleaned_mean_ramo2[start:end],'k',label = 'Media')        
@@ -380,11 +387,11 @@ for run in runs:
         fig.tight_layout()
 
         
-        plt.savefig(os.path.join(path_out, run +'_tracers_in_time_ramo2_method1.png'), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(path_out, run_name +'_tracers_in_time_ramo2_method1.png'), dpi=300, bbox_inches='tight')
         
         
     ###################################################################################
-    #Distance method 2 # distance between the mean of appeared and disappeared tracers with a 15 frame envelope for all the frames
+    # Distance method 2 # distance between the mean of appeared and disappeared tracers with a 15 frame envelope for all the frames
     ################################################################################### 
     envelope_tracers_app = pd.DataFrame()
     envelope_tracers_dis = pd.DataFrame()
@@ -457,15 +464,15 @@ for run in runs:
         time = np.append(time,i*4/60)
     
    
-    fig, axs = plt.subplots(2,sharex=True,figsize = (16.5,3), tight_layout=True)
-    fig.suptitle('Traccianti metodo 2 '+run)
-    axs[0].set_title('Media Comparsi e Scomparsi',fontsize='large',loc='left')
-    axs[0].plot(time,mean_appeared,'b',label = 'Comparsi')
-    axs[0].plot(time,mean_disappeared,'orange',label = 'Scomparsi')
+    fig, axs = plt.subplots(2,sharex=True,figsize = (16.5,12), tight_layout=True)
+    fig.suptitle('Traccianti metodo 2 '+run_name)
+    axs[0].set_title('Mean Appeared and Disappeared - ' + run_name,fontsize='large',loc='left')
+    axs[0].plot(time,mean_appeared,'b',label = 'Appeared')
+    axs[0].plot(time,mean_disappeared,'orange',label = 'Disappeared')
     axs[0].grid()
     axs[0].legend(loc = 'upper left')   
-    axs[0].set_ylim(0,1000)
-    axs[1].set_title('Velocità istantanea',fontsize='large',loc='left')
+    # axs[0].set_ylim(0,1000)
+    axs[1].set_title('Instantaneous velocity - ' + run_name,fontsize='large',loc='left')
     axs[1].axhline(velocity2,color = 'k',ls='--')
     axs[1].plot(time,distance_array/4,'k',label = 'Velocity')
     axs[1].grid()
@@ -474,18 +481,18 @@ for run in runs:
     axs[1].set_ylim(0)
     fig.tight_layout()
     
-    plt.savefig(os.path.join(path_out, run +'_tracers_in_time_method2.png'), dpi=300,bbox_inches='tight')
+    plt.savefig(os.path.join(path_out, run_name +'_tracers_in_time_method2.png'), dpi=300,bbox_inches='tight')
     
     
     if yrami != 0:
-        fig, axs = plt.subplots(2,sharex=True,figsize = (16.5,3), tight_layout=True)
-        axs[0].set_title('Mediana Comparsi e Scomparsi',fontsize='large',loc='left')
-        axs[0].plot(time,mean_appeared_ramo2,'b',label = 'Comparsi')
-        axs[0].plot(time,mean_disappeared_ramo2,'orange',label = 'Scomparsi')
+        fig, axs = plt.subplots(2,sharex=True,figsize = (16.5,12), tight_layout=True)
+        axs[0].set_title('Median Appeared and Disappeared - ' + run_name,fontsize='large',loc='left')
+        axs[0].plot(time,mean_appeared_ramo2,'b',label = 'Appeared')
+        axs[0].plot(time,mean_disappeared_ramo2,'orange',label = 'Disappeared')
         axs[0].grid()
         axs[0].legend(loc = 'upper left')   
-        axs[0].set_ylim(0,1000)
-        axs[1].set_title('Velocità istantanea',fontsize='large',loc='left')
+        # axs[0].set_ylim(0,1000)
+        axs[1].set_title('Instantaneous velocity - ' + run_name,fontsize='large',loc='left')
         axs[1].axhline(velocity2,color = 'k',ls='--')
         axs[1].plot(time,distance_ramo2_array/4,'k',label = 'Velocity')
         axs[1].grid()
@@ -494,7 +501,7 @@ for run in runs:
         axs[1].set_ylim(0)
         fig.tight_layout()
         
-        plt.savefig(os.path.join(path_out, run +'_tracers_in_time_method2_ramo2.png'), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(path_out, run_name +'_tracers_in_time_method2_ramo2.png'), dpi=300, bbox_inches='tight')
         
     ###################################################################################
     #Distance method 3 # distance between the mean of the envelope of appeared tracers from start to end
@@ -524,8 +531,8 @@ for run in runs:
     #Exporting all the distances
     ############################################################
     finaldata = np.zeros((12))
-    finaldata[0] = int(run[1:3])/10    
-    finaldata[1] = int(run[6:8])
+    finaldata[0] = int(run_name[1:3])/10    
+    finaldata[1] = int(run_name[6:8])
     finaldata[2] = distance1
     finaldata[3] = distance2
     finaldata[4] = distance3
@@ -541,8 +548,8 @@ for run in runs:
  
     if yrami != 0 and skip != 2:
        finaldata = np.zeros((12))
-       finaldata[0] = int(run[1:3])/10    
-       finaldata[1] = int(run[6:8])
+       finaldata[0] = int(run_name[1:3])/10    
+       finaldata[1] = int(run_name[6:8])
        finaldata[2] = distance1ramo2
        finaldata[3] = distance2ramo2
        finaldata[4] = distance3ramo2
@@ -555,7 +562,7 @@ for run in runs:
        finaldata[11] = end/len(tracers_reduced)
        report_distances = np.vstack((report_distances,finaldata))  
        
-    # print(str(run)+' finished')
+    # print(str(run_name)+' finished')
 
     
-np.savetxt(os.path.join(report_dir,  'report_distances.txt'), report_distances, comments='', fmt='%.4f', delimiter=',', header = 'portata,prova,distanza1,distanza2,distanza3,velocita1,velocita2,velocita3,distanzatraduemode,percdeposito,percer,percrun')    
+np.savetxt(os.path.join(report_dir, 'report_distances.txt'), report_distances, comments='', fmt='%.4f', delimiter=',', header = 'portata,prova,distanza1,distanza2,distanza3,velocita1,velocita2,velocita3,distanzatraduemode,percdeposito,percer,percrun')    

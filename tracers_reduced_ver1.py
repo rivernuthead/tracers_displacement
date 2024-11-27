@@ -104,7 +104,7 @@ for run in runs:
             page = np.vstack((page,newrow))
         new_tracers_disappeared[i,:,:] = page    
     
-    #np.save(path_in_tracers + '\\tracers_reduced_'+ run +'.npy',new_tracers)
+    np.save(path_in_tracers + '\\tracers_reduced_'+ run +'.npy',new_tracers)
     np.save(path_in_tracers + '\\tracers_appeared_reduced_'+ run +'.npy',new_tracers_appeared)
     np.save(path_in_tracers + '\\tracers_disappeared_reduced_'+ run +'.npy',new_tracers_disappeared)
     

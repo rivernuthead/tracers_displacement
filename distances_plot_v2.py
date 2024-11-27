@@ -65,16 +65,41 @@ plt.tight_layout()
 plt.savefig(os.path.join(plot_dir, 'metodo2.png'), dpi=300,bbox_inches='tight')
 plt.show()
 
+
+
+# =============================================================================
+# 
+# =============================================================================
+# Seaborn settings
+sns.set_context("talk")
 sns.set_style("whitegrid")
-sns.boxplot(data = report_distances, x="portata", y="distanza3",saturation=0.9,medianprops={"color": "firebrick"},palette='pastel')
-sns.despine(left = True, bottom = True)
-plt.ylim(0,900)
+
+# Adjusted boxplot
+sns.boxplot(
+    data=report_distances, 
+    x="portata", 
+    y="distanza3", 
+    saturation=0.9, 
+    medianprops={"color": "firebrick"}, 
+    palette="pastel"  # Ensure compatibility with current Seaborn
+)
+
+# Additional plot settings
+sns.despine(left=True, bottom=True)
+plt.ylim(0, 900)
 plt.ylabel("Distanza [mm]")
 plt.xlabel("Portata [l/s]")
 plt.tight_layout()
-plt.savefig(os.path.join(plot_dir, 'metodo3.png'), dpi=300,bbox_inches='tight')
+
+# Save and show plot
+plt.savefig(os.path.join(plot_dir, 'metodo3.png'), dpi=300, bbox_inches='tight')
 plt.show()
 
+
+
+# =============================================================================
+# 
+# =============================================================================
 sns.set_style("whitegrid")
 sns.boxplot(data = report_distances, x="portata", y="velocita1",saturation=0.9,medianprops={"color": "firebrick"},palette='Set2_r')
 sns.despine(left = True, bottom = True)
@@ -139,14 +164,14 @@ plt.legend().set_title('')
 plt.savefig(os.path.join(plot_dir, 'morpho.png'), dpi=300,bbox_inches='tight')
 plt.show()
 
-report_distances = report_distances.drop(report_distances[report_distances.distanzatraduemode == 0].index)
-dist2mode = report_distances[['portata','distanzatraduemode']]
-dist2mode['dist'] = dist2mode.distanzatraduemode
-dist2mode['Legenda'] = 'prove'
-distDoD = report_DoDdistances[['portata','distanza']]
-distDoD['dist'] = distDoD.distanza
-distDoD['Legenda'] = 'rilievo'
-report = pd.concat((dist2mode,distDoD))
+# report_distances = report_distances.drop(report_distances[report_distances.distanzatraduemode == 0].index)
+# dist2mode = report_distances[['portata','distanzatraduemode']]
+# dist2mode['dist'] = dist2mode.distanzatraduemode
+# dist2mode['Legenda'] = 'prove'
+# distDoD = report_DoDdistances[['portata','distanza']]
+# distDoD['dist'] = distDoD.distanza
+# distDoD['Legenda'] = 'rilievo'
+# report = pd.concat((dist2mode,distDoD))
 
 sns.set_style("whitegrid")
 sns.boxplot(data = report_distances, x="portata", y="distanzatraduemode",saturation=0.9,medianprops={"color": "firebrick"},palette='Set3')
@@ -159,16 +184,16 @@ plt.tight_layout()
 plt.savefig(os.path.join(plot_dir, 'distanza_tra_due_mode.png'), dpi=300,bbox_inches='tight')
 plt.show()
 
-sns.set_style("whitegrid")
-sns.boxplot(data = report_DoDdistances, x="portata", y="distanza",saturation=0.9,medianprops={"color": "firebrick"},palette='Set3')
-sns.despine(left = True, bottom = True)
-plt.title('Distanza tra le aree di deposito')
-plt.ylabel("Distanza [mm]")
-plt.ylim(0,2200)
-plt.xlabel("Portata [l/s]")
-plt.tight_layout()
-plt.savefig(os.path.join(plot_dir, 'distanza_DoD.png'), dpi=300,bbox_inches='tight')
-plt.show()
+# sns.set_style("whitegrid")
+# sns.boxplot(data = report_DoDdistances, x="portata", y="distanza",saturation=0.9,medianprops={"color": "firebrick"},palette='Set3')
+# sns.despine(left = True, bottom = True)
+# plt.title('Distanza tra le aree di deposito')
+# plt.ylabel("Distanza [mm]")
+# plt.ylim(0,2200)
+# plt.xlabel("Portata [l/s]")
+# plt.tight_layout()
+# plt.savefig(os.path.join(plot_dir, 'distanza_DoD.png'), dpi=300,bbox_inches='tight')
+# plt.show()
 
 # sns.set_style("whitegrid")
 # sns.boxplot(data = report, x="portata", y="dist",saturation=0.9,medianprops={"color": "firebrick"},palette='Set3',hue = 'Legenda')
