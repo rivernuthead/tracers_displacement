@@ -12,14 +12,14 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import geopandas as gpd
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+# from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib.patches as mpatches
 def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
 
-from matplotlib.pyplot import cm
+# from matplotlib.pyplot import cm
 
 
 w_dir = os.getcwd() # Set Python script location as w_dir
@@ -71,9 +71,9 @@ y_labels = ['0','0.3','0.6']
 DoDs = [DoD_q05_1,DoD_q05_2,DoD_q05_3,DoD_q05_4]
 k = 1
 for j in range(1,5):
-    fig, axs = plt.subplots(2,sharex=True,figsize = (16,3.5), tight_layout=True)   
+    fig, axs = plt.subplots(2,sharex=True,figsize = (11,3.5), tight_layout=True)     
     fig.subplots_adjust(hspace=0)
-    #axs[0].set_title('0.5 l/s-'+str(j),fontsize='x-large',loc='center',fontweight='bold')
+    axs[0].set_title('0.5 l/s-'+str(j),fontsize='x-large',loc='center',fontweight='bold')
     im = axs[1].imshow(DoDs[j-1], cmap='RdBu',  vmin=vmin, vmax=vmax, aspect='0.1')
     runs =[]
     borders=np.zeros((3,2))
@@ -124,10 +124,10 @@ for j in range(1,5):
         hue = np.where(hue>0,1,hue)
         hue = np.where(hue<0,-1,hue)
         color_dict = dict({'Scour': 'red','Fill': 'dodgerblue','Not detected':'orange'})
-        df_tracers['Legenda'] = hue
-        df_tracers['Legenda'] = df_tracers['Legenda'].replace([1], 'Deposition')
-        df_tracers['Legenda'] = df_tracers['Legenda'].replace([-1], 'Scour')
-        df_tracers['Legenda'] = df_tracers['Legenda'].replace([0], 'Not detected')
+        df_tracers['Legend'] = hue
+        df_tracers['Legend'] = df_tracers['Legend'].replace([1], 'Deposition')
+        df_tracers['Legend'] = df_tracers['Legend'].replace([-1], 'Scour')
+        df_tracers['Legend'] = df_tracers['Legend'].replace([0], 'Not detected')
         all_df_tracers = pd.concat([all_df_tracers, df_tracers]) 
         i += 1
     k += 3
@@ -137,21 +137,21 @@ for j in range(1,5):
     axs[1].add_patch(mpatches.Rectangle((max(borders[:,1]), 3),270 - max(borders[:,1]), 140,facecolor = 'grey',lw=3,alpha = 0.7))  
     if j == 3:
         axs[1].add_patch(mpatches.Rectangle((borders[0,1], 3),borders[2,0]-borders[0,1], 140,facecolor = 'grey',lw=3,alpha = 0.7))         
-    sns.histplot(x=all_df_tracers.x, binwidth=2,binrange=(0,278),weights=all_df_tracers.ntracc,stat = 'percent',ax=axs[0],hue = all_df_tracers.Legenda,palette = color_dict,multiple = "stack",hue_order =['Scour','Fill','Not detected'])
+    sns.histplot(x=all_df_tracers.x, binwidth=2,binrange=(0,278),weights=all_df_tracers.ntracc,stat = 'percent',ax=axs[0],hue = all_df_tracers.Legend,palette = color_dict,multiple = "stack",hue_order =['Scour','Fill','Not detected'])
     sns.despine(ax=axs[0])
     
     cbar_ax = fig.add_axes([1, 0.20, 0.02, 0.2])  # Adjust the position and size as needed
     plt.colorbar(im, cax=cbar_ax, ticks=[vmin, 0, vmax], label='mm')
  
     
-    axs[0].set_yticks([])
-    axs[0].set_ylabel("")
+    # axs[0].set_yticks([])
+    # axs[0].set_ylabel("")
     axs[0].set_xlim(0,278)
     axs[1].set_yticks(ticks=y_ticks, labels=y_labels)
     axs[1].set_xticks(ticks=x_ticks, labels=x_labels)
-    axs[1].set_xlabel('Coordinata longitudinale x [m]',fontsize = 'large')
-    axs[1].set_ylabel('Larghezza B [m]',fontsize = 'large')
-    axs[0].set_ylabel('N° traccianti [%]',fontsize = 'large')
+    axs[1].set_xlabel('Longitudinal coordinate [m]',fontsize = 'large')
+    axs[1].set_ylabel('Width [m]',fontsize = 'large')
+    axs[0].set_ylabel('Number of tracers [%]',fontsize = 'large')
     plt.savefig(os.path.join(morphodir, 'all_tracers_q05_overlap_DoD_'+str(j)+'.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
@@ -162,9 +162,9 @@ for j in range(1,5):
 DoDs = [DoD_q07_1,DoD_q07_2,DoD_q07_3,DoD_q07_4]
 k = 1
 for j in range(1,5):
-    fig, axs = plt.subplots(2,sharex=True,figsize = (16,3.5), tight_layout=True)   
+    fig, axs = plt.subplots(2,sharex=True,figsize = (11,3.5), tight_layout=True)    
     fig.subplots_adjust(hspace=0)
-    #axs[0].set_title('0.7 l/s-'+str(j),fontsize='x-large',loc='center',fontweight='bold')
+    axs[0].set_title('0.7 l/s-'+str(j),fontsize='x-large',loc='center',fontweight='bold')
     im = axs[1].imshow(DoDs[j-1], cmap='RdBu',  vmin=vmin, vmax=vmax, aspect='0.1')
     runs =[]
     borders=np.zeros((3,2))
@@ -213,10 +213,10 @@ for j in range(1,5):
         hue = np.where(hue>0,1,hue)
         hue = np.where(hue<0,-1,hue)
         ccolor_dict = dict({'Scour': 'red','Fill': 'dodgerblue','Not detected':'orange'})
-        df_tracers['Legenda'] = hue
-        df_tracers['Legenda'] = df_tracers['Legenda'].replace([1], 'Fill')
-        df_tracers['Legenda'] = df_tracers['Legenda'].replace([-1], 'Scour')
-        df_tracers['Legenda'] = df_tracers['Legenda'].replace([0], 'Not detected')
+        df_tracers['Legend'] = hue
+        df_tracers['Legend'] = df_tracers['Legend'].replace([1], 'Fill')
+        df_tracers['Legend'] = df_tracers['Legend'].replace([-1], 'Scour')
+        df_tracers['Legend'] = df_tracers['Legend'].replace([0], 'Not detected')
         all_df_tracers = pd.concat([all_df_tracers, df_tracers]) 
         i += 1
     k += 3
@@ -226,18 +226,18 @@ for j in range(1,5):
     axs[1].add_patch(mpatches.Rectangle((max(borders[:,1]), 3),270 - max(borders[:,1]), 140,facecolor = 'grey',lw=3,alpha = 0.7))      
     if j == 2:
          axs[1].add_patch(mpatches.Rectangle((borders[0,1], 3),borders[1,0]-borders[0,1], 140,facecolor = 'grey',lw=3,alpha = 0.7))         
-    sns.histplot(x=all_df_tracers.x, binwidth=2,binrange=(0,278),weights=all_df_tracers.ntracc,stat = 'percent',ax=axs[0],hue = all_df_tracers.Legenda,palette = color_dict,multiple = "stack",hue_order =['Scour','Fill','Not detected'])
+    sns.histplot(x=all_df_tracers.x, binwidth=2,binrange=(0,278),weights=all_df_tracers.ntracc,stat = 'percent',ax=axs[0],hue = all_df_tracers.Legend,palette = color_dict,multiple = "stack",hue_order =['Scour','Fill','Not detected'])
     sns.despine(ax=axs[0])
     cbar_ax = fig.add_axes([1, 0.20, 0.02, 0.2])  # Adjust the position and size as needed
     plt.colorbar(im, cax=cbar_ax, ticks=[vmin, 0, vmax], label='mm')
     axs[1].set_xticks(ticks=x_ticks, labels=x_labels)
-    axs[0].set_yticks([])
-    axs[0].set_ylabel("")  #TODO
+    # axs[0].set_yticks([])
+    # axs[0].set_ylabel("")  #TODO
     axs[0].set_xlim(0,278)
     axs[1].set_yticks(ticks=y_ticks, labels=y_labels)
-    axs[1].set_xlabel('Coordinata longitudinale x [m]',fontsize = 'large')
-    axs[1].set_ylabel('Larghezza B [m]',fontsize = 'large')
-    axs[0].set_ylabel('N° traccianti [%]',fontsize = 'large')
+    axs[1].set_xlabel('Longitudinal coordinate [m]',fontsize = 'large')
+    axs[1].set_ylabel('Width [m]',fontsize = 'large')
+    axs[0].set_ylabel('Number of tracers [%]',fontsize = 'large')
     plt.savefig(os.path.join(morphodir, 'all_tracers_q07_overlap_DoD_'+str(j)+'.png'), dpi=300,bbox_inches='tight')
     plt.show()
 
@@ -302,10 +302,10 @@ for j in range(1,7):
         hue = np.where(hue>0,1,hue)
         hue = np.where(hue<0,-1,hue)
         color_dict = dict({'Scour': 'red','Fill': 'dodgerblue','Not detected':'orange'})
-        df_tracers['Legenda'] = hue
-        df_tracers['Legenda'] = df_tracers['Legenda'].replace([1], 'Fill')
-        df_tracers['Legenda'] = df_tracers['Legenda'].replace([-1], 'Scour')
-        df_tracers['Legenda'] = df_tracers['Legenda'].replace([0], 'Not detected')
+        df_tracers['Legend'] = hue
+        df_tracers['Legend'] = df_tracers['Legend'].replace([1], 'Fill')
+        df_tracers['Legend'] = df_tracers['Legend'].replace([-1], 'Scour')
+        df_tracers['Legend'] = df_tracers['Legend'].replace([0], 'Not detected')
         all_df_tracers = pd.concat([all_df_tracers, df_tracers]) 
         i += 1
     k += 2
@@ -315,17 +315,17 @@ for j in range(1,7):
     axs[1].add_patch(mpatches.Rectangle((max(borders[:,1]), 3),270 - max(borders[:,1]), 140,facecolor = 'grey',lw=3,alpha = 0.7))  
     if j == 2 or j ==3:
          axs[1].add_patch(mpatches.Rectangle((borders[0,1], 3),borders[1,0]-borders[0,1], 140,facecolor = 'grey',lw=3,alpha = 0.7))             
-    sns.histplot(x=all_df_tracers.x, binwidth=2,binrange=(0,236),weights=all_df_tracers.ntracc,stat = 'percent',ax=axs[0],hue = all_df_tracers.Legenda,palette = color_dict,multiple = "stack",hue_order =['Scour','Fill','Not detected'])
+    sns.histplot(x=all_df_tracers.x, binwidth=2,binrange=(0,236),weights=all_df_tracers.ntracc,stat = 'percent',ax=axs[0],hue = all_df_tracers.Legend,palette = color_dict,multiple = "stack",hue_order =['Scour','Fill','Not detected'])
     sns.despine(ax=axs[0])
     cbar_ax = fig.add_axes([1, 0.20, 0.02, 0.2])  # Adjust the position and size as needed
     plt.colorbar(im, cax=cbar_ax, ticks=[vmin, 0, vmax], label='mm')
     axs[1].set_xticks(ticks=x_ticks, labels=x_labels)
-    axs[0].set_yticks([])
-    axs[0].set_ylabel("")
+    # axs[0].set_yticks([])
+    # axs[0].set_ylabel("")
     axs[0].set_xlim(0,236)
     axs[1].set_yticks(ticks=y_ticks, labels=y_labels)
-    axs[1].set_xlabel('Coordinata longitudinale x [m]',fontsize = 'large')
-    axs[1].set_ylabel('Larghezza B [m]',fontsize = 'large')
-    axs[0].set_ylabel('N° traccianti [%]',fontsize = 'large')
+    axs[1].set_xlabel('Longitudinal coordinate [m]',fontsize = 'large')
+    axs[1].set_ylabel('Width [m]',fontsize = 'large')
+    axs[0].set_ylabel('Number of tracers [%]',fontsize = 'large')
     plt.savefig(os.path.join(morphodir, 'all_tracers_q10_overlap_DoD_'+str(j)+'.png'), dpi=300,bbox_inches='tight')
     plt.show()

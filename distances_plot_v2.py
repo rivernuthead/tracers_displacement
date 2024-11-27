@@ -37,7 +37,7 @@ if not os.path.exists(report_dir):
 
 
 report_distances = pd.read_csv(os.path.join(report_dir, 'report_distances.txt'))
-report_DoDdistances = pd.read_csv(os.path.join(report_dir, 'DoDdistanze.txt'))
+report_DoDdistances = pd.read_csv(os.path.join(w_dir, 'input_data', 'DoDdistanze.txt'))
 
 report_distances['percdeposito']=report_distances['percdeposito']*100
 report_distances['percer']=report_distances['percer']*100
