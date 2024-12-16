@@ -32,16 +32,23 @@ clean_size = 5
 # run_names = ['q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12']
 # run_names = ['q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
+run_names = ['q10_1r1']
 '''
 TO PRINT THE report_distances.txt FILE RUN ALL THE run_name TOGETHER
 '''
-run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12',
-             'q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12',
-             'q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
+# run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q05_1r7', 'q05_1r8', 'q05_1r9', 'q05_1r10', 'q05_1r11', 'q05_1r12',
+#              'q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12',
+#              'q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
+
+save_report_distances = False
 
 
 report_distances = np.empty((0,12)) # distance between modes all distribution from start to end
+
+# IMPORT SCRIPT PARAMETERS
+run_parameters = pd.read_csv(os.path.join(w_dir, 'input_data', 'tracers_DEM_DoD_combination_v2.csv'))
+
 ###############################################################################
 # LOOP OVER RUNS
 ###############################################################################
@@ -84,12 +91,30 @@ for run_name in run_names:
     tracers_disappeared_stopped = np.load(path_in_tracers + '/tracers_disappeared_reduced_stopped_'+ run_name +'.npy',allow_pickle=True) 
     
     
-    start = int(run_param[int(run_name[6:])-1,6])
-    yrami = int(run_param[int(run_name[6:])-1,7])
-    nmode1 = int(run_param[int(run_name[6:])-1,8])
-    nmode2 = int(run_param[int(run_name[6:])-1,9])
-    skip = int(run_param[int(run_name[6:])-1,10])
-    end = int(run_param[int(run_name[6:])-1,11])
+    
+    # DEFINE SCRIPT PARAMETERS 
+    # Find the row where RUN equals run_name
+    selected_row = run_parameters.loc[run_parameters['RUN'] == run_name]
+    
+    if not selected_row.empty:
+        # Extract variables for each column in the selected row
+        
+        DEM_name = int(selected_row['DEM'].values[0])
+        
+        DoD_name = selected_row['DoD timespan1'].values[0]
+        # DoD_name = selected_row['DoD timespan2'].values[0]
+        # DoD_name = selected_row['DoD timespan2.1'].values[0]
+        
+        x_coord_offset = selected_row['x_coord_offset'].values[0]
+        
+        feed_x = selected_row['feed-x'].values[0]
+            
+        start = selected_row['Discharge reach regime [frame]'].values[0]
+        yrami = selected_row['y coord branch division [mm]'].values[0]
+        nmode1 = selected_row['n mode 1'].values[0]
+        nmode2 = selected_row['n mode 2'].values[0]
+        skip = selected_row['skip'].values[0]
+        end = selected_row['end 80'].values[0]
     
     time = []
     for i in range(0,len(tracers_reduced),1):    
@@ -564,5 +589,5 @@ for run_name in run_names:
        
     # print(str(run_name)+' finished')
 
-    
-np.savetxt(os.path.join(report_dir, 'report_distances.txt'), report_distances, comments='', fmt='%.4f', delimiter=',', header = 'portata,prova,distanza1,distanza2,distanza3,velocita1,velocita2,velocita3,distanzatraduemode,percdeposito,percer,percrun')    
+if save_report_distances:
+    np.savetxt(os.path.join(report_dir, 'report_distances.txt'), report_distances, comments='', fmt='%.4f', delimiter=',', header = 'portata,prova,distanza1,distanza2,distanza3,velocita1,velocita2,velocita3,distanzatraduemode,percdeposito,percer,percrun')    

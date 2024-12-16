@@ -24,7 +24,7 @@ run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q
 run_names = ['q07_1r10']
 
 # FOLDERS SETUP
-w_dir = os.getcwd()
+w_dir = '/Volumes/T7_Shield/PhD/repos/tracers_displacement/'
 input_dir = os.path.join(w_dir, 'input_data')
 output_dir = os.path.join(w_dir, 'output_data')
 
@@ -125,6 +125,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
+import pandas as pd
+
 
 start_time = time.time()
 
@@ -134,16 +136,24 @@ run_names = ['q05_1r1', 'q05_1r2','q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', 'q
               'q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12',
               'q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
-run_names = ['q07_1r10']
+run_names = ['q07_1r11']
+
+
+
+# SURVEY PIXEL DIMENSION
+px_x, px_y = 50, 5 # [mm]
 
 # FOLDERS SETUP
 w_dir = '/Volumes/T7_Shield/PhD/repos/tracers_displacement/'
 input_dir = os.path.join(w_dir, 'input_data')
 output_dir = os.path.join(w_dir, 'output_data')
 
-
+run_parameters = pd.read_csv(os.path.join(w_dir, 'input_data', 'tracers_DEM_DoD_combination_v2.csv'))
 
 for run_name in run_names:
+    
+    path_in_DoD = os.path.join(input_dir,'DoDs','DoD_'+run_name[0:5])
+    
     start_time = time.time()
     
     # Initialize arrays to store the counts
@@ -155,9 +165,15 @@ for run_name in run_names:
     # =============================================================================
     # IMPORT FILES
     # =============================================================================
-    tracers_reduced_path = os.path.join(w_dir, 'output_data', 'output_images', run_name, 'tracers_reduced_'+run_name+'.npy')
-    tracers_reduced_raw = np.load(tracers_reduced_path)
-
+    # tracers_reduced_path = os.path.join(w_dir, 'output_data', 'output_images', run_name, 'tracers_reduced_'+run_name+'.npy')
+    # tracers_reduced_raw = np.load(tracers_reduced_path)
+    
+    tracers_path = os.path.join(w_dir, 'output_data', 'output_images', run_name,'alltracers_'+ run_name +'.npy')
+    tracers_raw = np.load(tracers_path)
+    tracers_raw = tracers_raw[:, :, 1:]
+    tracers_reduced_raw = np.copy(tracers_raw)
+    
+    
     for t in range(tracers_reduced_raw.shape[0]):
         # Sort rows based on the values in the first column (column index 0) for each time slice
         tracers_reduced_raw[t] = tracers_reduced_raw[t][np.argsort(tracers_reduced_raw[t][:, 0])]
@@ -169,7 +185,106 @@ for run_name in run_names:
 
     # # REMOVE EMPTY MATRICES
     tracers_reduced = tracers_reduced_raw
+    
+    selected_row = run_parameters.loc[run_parameters['RUN'] == run_name]
+    if not selected_row.empty:
+        
+        DEM_name = int(selected_row['DEM'].values[0]) # DEM name
+        
+        DoD_name = selected_row['DoD timespan1'].values[0] # DoD name timespan 1
+        DoD_name_tspan2_v1 = selected_row['DoD timespan2'].values[0] # DoD name timespan 2 - combination 1
+        DoD_name_tspan2_v2 = selected_row['DoD timespan2.1'].values[0] # DoD name timespan 2 - combination 2
+        DoD_name_tspan1_pre = selected_row['DoD timespan1 pre'].values[0]
+        DoD_name_tspan1_post = selected_row['DoD timespan1 post'].values[0]
+        
+        feed_x = selected_row['feed-x'].values[0] # Feeding x-coordinate
+        
+        frame_position = selected_row['frame_position 1  [m]'].values[0] # Frame position in meters
+        frame_position += 0.44 # # Frame position with respect to the CRS of the DEM (The beginning of the DEM is at -0.44 meters with respect to the laser survey CRS)
+        
+        frame_position2 = selected_row['frame_position 2  [m]'].values[0] # Frame position 2 in meters
+        
+    DoD_path = os.path.join(path_in_DoD, 'DoD_' + DoD_name+'_filt_ult.txt')
+    DoD = np.loadtxt(DoD_path)
+    
+    DoD_tspan2_1_path = os.path.join(path_in_DoD, 'DoD_' + DoD_name_tspan2_v1+'_filt_ult.txt')
+    DoD_tspan2_1 = np.loadtxt(DoD_tspan2_1_path)
+    
+    DoD_tspan2_2_path = os.path.join(path_in_DoD, 'DoD_' + DoD_name_tspan2_v2+'_filt_ult.txt')
+    DoD_tspan2_2 = np.loadtxt(DoD_tspan2_2_path)
+    
+    # LOAD THE PRE AND POST DoD -----------------------------------------------
+    # CHECK PRE
+    if not DoD_name_tspan1_pre == 'False':
+        DoD_tspan1_pre = np.loadtxt(os.path.join(path_in_DoD, 'DoD_' + DoD_name_tspan1_pre+'_filt_ult.txt'))
+    
+    # CHECK POST
+    if not DoD_name_tspan1_post == 'False':
+        DoD_tspan1_post = np.loadtxt(os.path.join(path_in_DoD, 'DoD_' + DoD_name_tspan1_post+'_filt_ult.txt'))
+    
+    # ADD THE VALUES OF THE DOD
+    t, r, c = tracers_reduced.shape
+    tracers_reduced = np.concatenate((tracers_reduced, np.full((t, r, 2), np.nan)), axis=2)
+    # Update the new column in the stack for each t and row
+    for i in range(t):
+        for j in range(r):
+            pure_filt_check=[]
+            weak_dep_check=[]
+            # Check if the row is not full of np.nan
+            if not np.all(np.isnan(tracers_reduced[i, j, :4])):  # Only check the original 4 columns              
+                DoD_value = DoD[(tracers_reduced[i,j,1]/(px_y)).astype(int),(tracers_reduced[i,j,0]/(px_x)).astype(int)]
+                
+                # CHECK PRE
+                if not DoD_name_tspan1_pre == 'False':
 
+                    DoD_tspan2_1_value_pre = DoD_tspan2_1[(tracers_reduced[i,j,1]/(px_y)).astype(int),(tracers_reduced[i,j,0]/(px_x)).astype(int)]
+                    # DoD_tspan1_pre = np.loadtxt(os.path.join(path_in_DoD, 'DoD_' + DoD_name_tspan1_pre+'_filt_ult.txt'))
+                    DoD_tspan1_value_pre = DoD_tspan1_pre[(tracers_reduced[i,j,1]/(px_y)).astype(int),(tracers_reduced[i,j,0]/(px_x)).astype(int)]
+                    
+                    print((DoD_value>0)*1)
+                    print((DoD_tspan1_value_pre>0)*1)
+                    print((DoD_tspan2_1_value_pre>0)*1)
+                    
+                    tuple_value = ((DoD_value>0)*1,(DoD_tspan1_value_pre>0)*1)
+                    value = (DoD_tspan2_1_value_pre>0)*1
+                    
+                    if tuple_value == (0, 0) and value == 1: # Check if the tuple is (0, 0) and the single value is 1
+                        pure_filt_check.append(True)
+                    
+                    if tuple_value in [(0, 1), (1, 0)] and value == 1: # Check if the tuple is (0, 1) or (1, 0) and the single value is 1
+                        weak_dep_check.append(True)
+                        
+                # CHECK POST
+                if not DoD_name_tspan1_post == 'False':
+
+                    DoD_tspan2_2_value_post = DoD_tspan2_2[(tracers_reduced[i,j,1]/(px_y)).astype(int),(tracers_reduced[i,j,0]/(px_x)).astype(int)]
+                    # DoD_tspan1_post = np.loadtxt(os.path.join(path_in_DoD, 'DoD_' + DoD_name_tspan1_post+'_filt_ult.txt'))
+                    DoD_tspan1_value_post = DoD_tspan1_post[(tracers_reduced[i,j,1]/(px_y)).astype(int),(tracers_reduced[i,j,0]/(px_x)).astype(int)]
+                    
+                    
+                    tuple_value = ((DoD_value>0)*1,(DoD_tspan1_value_post>0)*1)
+                    value = (DoD_tspan2_2_value_post>0)*1
+                    
+                    if tuple_value == (0, 0) and value == 1: # Check if the tuple is (0, 0) and the single value is 1
+                        pure_filt_check.append(True)
+                    
+                    if tuple_value in [(0, 1), (1, 0)] and value == 1: # Check if the tuple is (0, 1) or (1, 0) and the single value is 1
+                        weak_dep_check.append(True)
+                
+                        
+            if any(pure_filt_check):
+                tracers_reduced[i,j,4]==1
+                
+            if any(weak_dep_check):
+                tracers_reduced[i,j,5]==1
+                
+                
+                
+                
+                
+                
+                
+                
     # =============================================================================
     # COUNT POSITIVE, NEGATIVE, AND ZERO VALUES OVER TIME
     # =============================================================================

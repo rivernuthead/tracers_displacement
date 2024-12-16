@@ -2,7 +2,7 @@
 """
 Created on Thu Sep 29 16:58:53 2022
 
-@author: Marco
+@author: erri
 """
 
 
@@ -29,11 +29,11 @@ start_time = time.time()
 #               'q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12',
 #               'q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
-run_names = ['q05_1r12',
-              'q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12',
-              'q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
+# run_names = ['q05_1r12',
+#               'q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12',
+#               'q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
-# run_names = ['q07_1r10']
+run_names = ['q07_1r10']
 
 
 # SET DIRECTORIES -------------------------------------------------------------
@@ -163,7 +163,7 @@ for run_name in run_names:
         array_mask = np.loadtxt(os.path.join(input_dir, 'array_mask_reduced.txt'))
         array_mask = np.where(array_mask != -999,1,np.nan)
     DEM = np.where(DEM == -999, np.nan, DEM)
-    DoD_path = os.path.join(path_in_DoD, 'DoD_'+DoD_name+'_filt_ult.txt')
+    DoD_path = os.path.join(path_in_DoD, 'DoD_' + DoD_name+'_filt_ult.txt')
     DoD = np.loadtxt(DoD_path)
 
 
