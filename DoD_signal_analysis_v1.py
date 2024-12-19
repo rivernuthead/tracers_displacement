@@ -24,11 +24,11 @@ run_names = ['q05_1r1', 'q05_1r2', 'q05_1r3', 'q05_1r4', 'q05_1r5', 'q05_1r6', '
               'q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12',
               'q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
 
-# run_names = ['q07_1r10']
+run_names = ['q07_1r10']
 
 
 # SET DIRECTORIES -------------------------------------------------------------
-w_dir = '/Volumes/T7_Shield/PhD/repos/tracers_displacement/'
+w_dir = os.getcwd()
 input_dir = os.path.join(w_dir, 'input_data')
 output_dir = os.path.join(w_dir, 'output_data', 'DoD_analysis')
 if not os.path.exists(output_dir):
@@ -108,7 +108,7 @@ for run_name in run_names:
     # =============================================================================
     # APPLY SMOOTHING
     # =============================================================================
-    window_length = 201  # Smoothing window length (must be odd)
+    window_length = 241  # Smoothing window length (must be odd)
     polyorder = 3       # Polynomial order for Savitzky-Golay filter
 
     DoD_fill_array_smooth = savgol_filter(DoD_fill_array, window_length, polyorder, mode='interp')

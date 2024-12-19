@@ -37,7 +37,7 @@ run_names = ['q07_1r10']
 
 
 # SET DIRECTORIES -------------------------------------------------------------
-w_dir = '/Volumes/T7_Shield/PhD/repos/tracers_displacement/'
+w_dir = os.getcwd()
 input_dir = os.path.join(w_dir, 'input_data')
 output_dir = os.path.join(w_dir, 'output_data')
 tracer_extraction_folder_path = os.path.join(output_dir, 'tracer_extraction')
@@ -598,7 +598,7 @@ import re
 import imageio.core.util
 
 
-w_dir = '/Volumes/T7_Shield/PhD/repos/tracers_displacement/'
+w_dir = os.getcwd()
 input_dir = os.path.join(w_dir, 'input_data')
 output_dir = os.path.join(w_dir, 'output_data')
 
