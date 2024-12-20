@@ -585,7 +585,7 @@ if activity_periods__DoD_analysis:
                  'q07_1r1', 'q07_1r2', 'q07_1r3', 'q07_1r4', 'q07_1r5', 'q07_1r6', 'q07_1r7', 'q07_1r8', 'q07_1r9', 'q07_1r10', 'q07_1r11', 'q07_1r12',
                  'q10_1r1', 'q10_1r2', 'q10_1r3', 'q10_1r4', 'q10_1r5', 'q10_1r6', 'q10_1r7', 'q10_1r8', 'q10_1r9', 'q10_1r10', 'q10_1r11', 'q10_1r12']
     
-    # run_names = ['q05_1r1']
+    run_names = ['q05_1r1']
 
     
     # Initialize lists to store mean and median for each run_name
